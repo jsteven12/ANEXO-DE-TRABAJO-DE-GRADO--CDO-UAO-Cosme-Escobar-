@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Inventario de Dispositivos Médicos</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+  /* === ESTILO GLOBAL === */
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f1f5f9;
+    margin: 0;
+    padding: 0;
+    color: #1e293b;
+  }
+
+  /* === ENCABEZADO PRINCIPAL === */
+  .header-fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #1e3a8a;
+    color: white;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 60px;
+    padding: 12px 40px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    box-sizing: border-box;
+  }
+
+  /* === BOTONES EXCEL Y PDF (corregidos fuera de .header-fixed) === */
+  .btn-excel {
+    background: #16a34a !important;
+    color: white !important;
+  }
+
+  .btn-excel:hover {
+    background: #15803d !important;
+  }
+
+  .btn-pdf {
+    background: #dc2626 !important;
+    color: white !important;
+  }
+
+  .btn-pdf:hover {
+    background: #b91c1c !important;
+  }
+
+  /* === Logo y título juntos === */
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .logo-header {
+    width: 50px;
+    height: auto;
+  }
+
+  /* === Botones del encabezado === */
+  .header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-header {
+    background-color: #ffffff;
+    color: #1e3a8a;
+    border: 2px solid #ffffff;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 600;
+    font-size: 13px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-header:hover {
+    background-color: #2563eb;
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  #btnMostrarFormulario {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  #btnMostrarFormulario:hover {
+    background-color: #1e40af;
+  }
+
+  /* === CONTENIDO === */
+  .content-scroll {
+    margin-top: 90px;
+    padding: 30px 40px;
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #0f172a;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  /* === FORMULARIO === */
+  form {
+    background: white;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    margin: 25px auto 40px;
+    max-width: 950px;
+    display: none;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 12px 10px;
+    margin: 10px 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+  }
+
+  input:focus, select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 6px rgba(37,99,235,0.35);
+    outline: none;
+  }
+
+  button {
+    background: linear-gradient(135deg, #2563eb, #1e3a8a);
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+  }
+
+  button:hover {
+    background: linear-gradient(135deg, #1e40af, #1e3a8a);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(37,99,235,0.3);
+  }
+
+  /* === TABLA PROFESIONAL === */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  thead {
+    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    color: white;
+  }
+
+  th {
+    padding: 14px 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+  }
+
+  tbody tr:hover {
+    background-color: #f8fafc;
+    transform: scale(1.002);
+  }
+
+  td {
+    padding: 12px 10px;
+    font-size: 14px;
+    color: #1e293b;
+    text-align: center;
+  }
+
+  /* === BOTONES DE ACCIÓN === */
+  .acciones {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn-accion {
+    padding: 7px 13px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    transition: all 0.25s ease;
+  }
+
+  .btn-editar {
+    background-color: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #2563eb;
+  }
+
+  .btn-editar:hover {
+    background-color: #2563eb;
+    color: white;
+  }
+
+  .btn-eliminar {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #dc2626;
+  }
+
+  .btn-eliminar:hover {
+    background-color: #dc2626;
+    color: white;
+  }
+
+  /* === BOTONES DESCARGA === */
+  .botones-inventario {
+    text-align: center;
+    margin-top: 35px;
+  }
+
+  .botones-inventario .btn-descarga {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    margin: 0 6px;
+    transition: all 0.3s ease;
+  }
+
+  .botones-inventario .btn-descarga-excel {
+    background: #16a34a;
+    color: white;
+    border: none;
+  }
+
+  .botones-inventario .btn-descarga-excel:hover {
+    background: #15803d;
+    transform: translateY(-2px);
+  }
+
+  .botones-inventario .btn-descarga-pdf {
+    background: #dc2626;
+    color: white;
+    border: none;
+  }
+
+  .botones-inventario .btn-descarga-pdf:hover {
+    background: #b91c1c;
+    transform: translateY(-2px);
+  }
+  </style>
+</head>
+
+<body>
+
+  <div class="header-fixed">
+    <div class="header-title">
+      <img src="{{ url_for('static', filename='blue.png') }}" alt="Logo Clínica" class="logo-header">
+      <span>Clinica de Occidente</span>
+    </div>
+
+    <div class="header-buttons">
+      <a href="/dashboard" class="btn-header">🏠</a>
+      <a href="/matriz_amfe" class="btn-header">AMFE</a>
+      <button id="btnMostrarFormulario" class="btn-header">➕ Agregar dispositivo</button>
+    </div>
+  </div>
+
+  <div class="content-scroll">
+    <h2>Inventario de Dispositivos Médicos</h2>
+
+    <form id="formularioAgregar" method="POST">
+      {% if editar_dispositivo %}
+        <input type="hidden" name="editar_id" value="{{ editar_dispositivo[0] }}">
+      {% endif %}
+
+      <input type="text" name="nombre" placeholder="Nombre del dispositivo" value="{{ editar_dispositivo[1] if editar_dispositivo else '' }}" required>
+      <input type="text" name="marca" placeholder="Marca" value="{{ editar_dispositivo[2] if editar_dispositivo else '' }}">
+      <input type="text" name="modelo" placeholder="Modelo" value="{{ editar_dispositivo[3] if editar_dispositivo else '' }}">
+      <input type="text" name="serie" placeholder="Serie" value="{{ editar_dispositivo[4] if editar_dispositivo else '' }}">
+
+      <select name="clasificacion" required>
+        <option value="">Seleccione clasificación</option>
+        <option value="IIB" {% if editar_dispositivo and editar_dispositivo[5] == "IIB" %}selected{% endif %}>Clase IIB</option>
+        <option value="III" {% if editar_dispositivo and editar_dispositivo[5] == "III" %}selected{% endif %}>Clase III</option>
+      </select>
+
+      <input type="text" name="activo_fijo" placeholder="Activo fijo" value="{{ editar_dispositivo[6] if editar_dispositivo else '' }}">
+      <input type="text" name="registro_sanitario" placeholder="Registro sanitario" value="{{ editar_dispositivo[7] if editar_dispositivo else '' }}">
+      <input type="text" name="ubicacion" placeholder="Ubicación" value="{{ editar_dispositivo[8] if editar_dispositivo else '' }}">
+
+      <button type="submit">
+        {% if editar_dispositivo %}💾 Guardar cambios{% else %}➕ Agregar dispositivo{% endif %}
+      </button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Marca</th>
+          <th>Modelo</th>
+          <th>Serie</th>
+          <th>Clasificación</th>
+          <th>Activo fijo</th>
+          <th>Registro sanitario</th>
+          <th>Ubicación</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in dispositivos %}
+        <tr>
+          <td>{{ d[0] }}</td>
+          <td>{{ d[1] }}</td>
+          <td>{{ d[2] }}</td>
+          <td>{{ d[3] }}</td>
+          <td>{{ d[4] }}</td>
+          <td>{{ d[5] }}</td>
+          <td>{{ d[6] }}</td>
+          <td>{{ d[7] }}</td>
+          <td>{{ d[8] }}</td>
+          <td class="acciones">
+            <a href="/inventario?editar_id={{ d[0] }}" class="btn-accion btn-editar">✏️ Editar</a>
+            <a href="/eliminar/{{ d[0] }}" class="btn-accion btn-eliminar">🗑️ Eliminar</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="botones-inventario">
+      <a href="/descargar_excel" class="btn-descarga btn-descarga-excel">📊 Descargar Excel</a>
+      <a href="/descargar_inventario_pdf" class="btn-descarga btn-descarga-pdf">📄 Descargar PDF</a>
+    </div>
+  </div>
+
+  <input type="hidden" id="modoEdicion" value="{{ '1' if editar_dispositivo else '0' }}">
+
+  <script>
+    const boton = document.getElementById("btnMostrarFormulario");
+    const form = document.getElementById("formularioAgregar");
+    const modoEdicion = document.getElementById("modoEdicion").value;
+
+    boton.addEventListener("click", () => {
+      if (form.style.display === "none" || form.style.display === "") {
+        form.style.display = "block";
+        boton.textContent = "❌ Cerrar formulario";
+      } else {
+        form.style.display = "none";
+        boton.textContent = "➕ Agregar dispositivo";
+      }
+    });
+
+    if (modoEdicion === "1") {
+      form.style.display = "block";
+      boton.textContent = "❌ Cerrar formulario";
+    }
+  </script>
+</body>
+</html>

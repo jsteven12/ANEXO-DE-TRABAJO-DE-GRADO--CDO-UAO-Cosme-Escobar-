@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .error-message {
+            color: #dc2626;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+        input.invalid {
+            border: 2px solid #dc2626;
+        }
+        .password-requirements {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 5px;
+        }
+        .password-requirements li {
+            margin: 3px 0;
+        }
+        .password-requirements li.valid {
+            color: #16a34a;
+        }
+        .password-requirements li.invalid {
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body class="login-page">
+    <div class="login-box">
+      
+        <img src="{{ url_for('static', filename='gris.png') }}" class="logo" alt="Logo">
+        <h2>Inicio de Sesión</h2>
+
+        <form method="POST" id="loginForm">
+            <label>Usuario:</label><br>
+            <input type="text" name="username" id="username" required><br>
+
+            <label>Contraseña:</label><br>
+            <input type="password" name="password" id="password" required><br>
+
+            <button type="submit">Entrar</button>
+        </form>
+
+        <p style="margin-top:15px;">
+            ¿No tienes cuenta? 
+            <a href="{{ url_for('registro') }}" style="color:#2563eb; text-decoration:none; font-weight:bold;">
+                Regístrate aquí
+            </a>
+        </p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul style="list-style:none; padding:0;">
+              {% for category, message in messages %}
+                <li style="color:red;"><strong>{{ category }}:</strong> {{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+    </div>
+</body>
+</html>

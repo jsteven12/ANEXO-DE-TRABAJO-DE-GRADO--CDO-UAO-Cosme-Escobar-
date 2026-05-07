@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Matriz AMFE</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f8f9fa; }
+    .card { border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .table thead { background-color: #007bff; color: white; }
+    .btn-primary { background-color: #007bff; border: none; }
+    .btn-primary:hover { background-color: #0056b3; }
+
+    .btn-reporte-falla {
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      display: inline-block;
+    }
+    .btn-reporte-falla:hover {
+      background: linear-gradient(135deg, #6d28d9, #5b21b6);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(124, 58, 237, 0.35);
+    }
+
+    .btn-editar-amfe {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    .btn-editar-amfe:hover {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(14, 165, 233, 0.35);
+    }
+
+    .btn-eliminar-amfe {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    .btn-eliminar-amfe:hover {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(239, 68, 68, 0.35);
+    }
+
+    .acciones-col {
+      min-width: 180px;
+    }
+
+    /* NPR badge en el modal */
+    #modal-npr-preview {
+      font-size: 1.4rem;
+      font-weight: 700;
+      transition: color 0.3s;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container mt-4 mb-5">
+  <h2 class="text-center text-primary mb-4">Matriz AMFE - Análisis Modal de Fallos y Efectos</h2>
+
+  <!-- Mensajes Flash -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+      {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+      {% endfor %}
+  {% endif %}
+  {% endwith %}
+
+  <!-- Nueva matriz AMFE -->
+  <div class="card mt-4">
+    <div class="card-body">
+      <h5 class="text-primary mb-3">Realizar nueva matriz AMFE</h5>
+
+      <form method="POST" action="/matriz_amfe">
+        <div class="mb-3">
+          <label for="dispositivo_id" class="form-label">Seleccione un dispositivo</label>
+          <select class="form-select" id="dispositivo_id" name="dispositivo_id" required>
+            <option value="">-- Seleccione un dispositivo del inventario --</option>
+            {% for d in dispositivos %}
+              <option value="{{ d[0] }}" {% if request.form.get('dispositivo_id') == d[0]|string %}selected{% endif %}>
+                {{ d[1] }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="text-end mb-4">
+          <button type="submit" class="btn btn-secondary" name="accion" value="ver">🔍 Ver matriz del dispositivo</button>
+        </div>
+
+        <div class="mb-3">
+          <label for="subproceso" class="form-label">Subproceso</label>
+          <input type="text" class="form-control" id="subproceso" name="subproceso">
+        </div>
+
+        <div class="mb-3">
+          <label for="falla_potencial_del_subproceso" class="form-label">Falla potencial del subproceso</label>
+          <input type="text" class="form-control" id="falla_potencial_del_subproceso" name="falla_potencial_del_subproceso">
+        </div>
+
+        <div class="mb-3">
+          <label for="efecto_potencial" class="form-label">Efecto potencial</label>
+          <input type="text" class="form-control" id="efecto_potencial" name="efecto_potencial">
+        </div>
+
+        <div class="mb-3">
+          <label for="causa_potencial" class="form-label">Causa potencial</label>
+          <input type="text" class="form-control" id="causa_potencial" name="causa_potencial">
+        </div>
+
+        <div class="row">
+          <div class="col-md-4">
+            <label for="sev" class="form-label">Sev (1-5)</label>
+            <input type="number" class="form-control" id="sev" name="sev" min="1" max="5">
+          </div>
+          <div class="col-md-4">
+            <label for="ocur" class="form-label">Ocur (1-5)</label>
+            <input type="number" class="form-control" id="ocur" name="ocur" min="1" max="5">
+          </div>
+          <div class="col-md-4">
+            <label for="det" class="form-label">Det (1-5)</label>
+            <input type="number" class="form-control" id="det" name="det" min="1" max="5">
+          </div>
+        </div>
+
+        <div class="mb-3 mt-3">
+          <label for="acciones_recomendadas" class="form-label">Acciones recomendadas</label>
+          <input type="text" class="form-control" id="acciones_recomendadas" name="acciones_recomendadas">
+        </div>
+
+        <div class="mb-3">
+          <label for="responsable" class="form-label">Responsable</label>
+          <input type="text" class="form-control" id="responsable" name="responsable">
+        </div>
+
+        <div class="text-end mt-4">
+          <button type="submit" class="btn btn-primary" name="accion" value="guardar">💾 Guardar registro AMFE</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Matrices realizadas -->
+  <div class="card mt-5">
+    <div class="card-body">
+      <h5 class="text-primary mb-3">Matrices AMFE realizadas</h5>
+
+      {% if registros %}
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle text-center">
+          <thead class="table-primary">
+            <tr>
+              <th>ID</th>
+              <th>Dispositivo</th>
+              <th>Subproceso</th>
+              <th>Falla potencial</th>
+              <th>Efecto potencial</th>
+              <th>Causa potencial</th>
+              <th>Sev</th>
+              <th>Ocur</th>
+              <th>Det</th>
+              <th>NPR</th>
+              <th>Acciones recomendadas</th>
+              <th>Responsable</th>
+              <th class="acciones-col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in registros %}
+              {% set npr = r[9] %}
+              {% if npr <= 10 %}
+                {% set color = 'bg-success text-white fw-bold' %}
+              {% elif npr <= 20 %}
+                {% set color = 'bg-warning text-dark fw-bold' %}
+              {% else %}
+                {% set color = 'bg-danger text-white fw-bold' %}
+              {% endif %}
+              <tr id="fila-{{ r[0] }}">
+                <td>{{ r[0] }}</td>
+                <td>{{ r[1] }}</td>
+                <td>{{ r[2] }}</td>
+                <td>{{ r[3] }}</td>
+                <td>{{ r[4] }}</td>
+                <td>{{ r[5] }}</td>
+                <td>{{ r[6] }}</td>
+                <td>{{ r[7] }}</td>
+                <td>{{ r[8] }}</td>
+                <td class="{{ color }}">{{ r[9] }}</td>
+                <td>{{ r[10] }}</td>
+                <td>{{ r[11] }}</td>
+                <td>
+                  <div class="d-flex flex-column gap-1 align-items-center">
+                    <!-- Botón PDF -->
+                    <a href="{{ url_for('generar_reporte_falla', registro_id=r[0]) }}" class="btn-reporte-falla">
+                      📄 PDF
+                    </a>
+                    <!-- Botón Editar -->
+                    <button type="button"
+                      class="btn-editar-amfe"
+                      data-id="{{ r[0] }}"
+                      data-sev="{{ r[6] }}"
+                      data-ocur="{{ r[7] }}"
+                      data-det="{{ r[8] }}"
+                      data-falla="{{ r[3] }}"
+                      onclick="abrirModalEditar(this)">
+                      ✏️ Editar
+                    </button>
+                    <!-- Botón Eliminar -->
+                    <button type="button"
+                      class="btn-eliminar-amfe"
+                      data-id="{{ r[0] }}"
+                      data-falla="{{ r[3] }}"
+                      onclick="confirmarEliminar(this)">
+                      🗑️ Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="alert alert-info">Seleccione un dispositivo y haga clic en "Ver matriz del dispositivo" para visualizar los registros.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('inicio') }}" class="btn btn-secondary">
+      ⬅ Volver al inicio
+    </a>
+  </div>
+</div>
+
+
+<!-- ======== MODAL EDITAR AMFE ======== -->
+<div class="modal fade" id="modalEditarAMFE" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalEditarLabel">✏️ Editar Registro AMFE</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formEditarAMFE" method="POST" action="">
+        <div class="modal-body">
+          <p class="text-muted mb-3" id="modal-falla-info"></p>
+
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Severidad (1-5)</label>
+              <input type="number" class="form-control" id="edit-sev" name="sev" min="1" max="5" required oninput="recalcularNPR()">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Ocurrencia (1-5)</label>
+              <input type="number" class="form-control" id="edit-ocur" name="ocur" min="1" max="5" required oninput="recalcularNPR()">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Detección (1-5)</label>
+              <input type="number" class="form-control" id="edit-det" name="det" min="1" max="5" required oninput="recalcularNPR()">
+            </div>
+          </div>
+
+          <!-- Preview NPR -->
+          <div class="mt-4 text-center p-3 rounded" style="background:#f1f5f9;">
+            <span class="text-muted d-block mb-1" style="font-size:0.85rem;">NPR calculado (SEV × OCUR × DET)</span>
+            <span id="modal-npr-preview">—</span>
+            <span id="modal-riesgo-label" class="d-block mt-1 fw-semibold" style="font-size:0.9rem;"></span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">💾 Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ======== MODAL CONFIRMAR ELIMINAR ======== -->
+<div class="modal fade" id="modalEliminarAMFE" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">🗑️ Confirmar eliminación</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <p class="fs-5 mb-1">¿Estás seguro de que deseas eliminar este modo de falla?</p>
+        <p class="text-muted" id="eliminar-falla-info"></p>
+        <p class="text-danger fw-semibold">Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <form id="formEliminarAMFE" method="POST" action="" style="display:inline;">
+          <button type="submit" class="btn btn-danger">🗑️ Sí, eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // ---- Abrir modal de edición ----
+  function abrirModalEditar(btn) {
+    const id   = btn.dataset.id;
+    const sev  = btn.dataset.sev;
+    const ocur = btn.dataset.ocur;
+    const det  = btn.dataset.det;
+    const falla = btn.dataset.falla;
+
+    document.getElementById('formEditarAMFE').action = `/editar_amfe/${id}`;
+    document.getElementById('edit-sev').value  = sev;
+    document.getElementById('edit-ocur').value = ocur;
+    document.getElementById('edit-det').value  = det;
+    document.getElementById('modal-falla-info').textContent = `Falla: "${falla}"`;
+
+    recalcularNPR();
+
+    const modal = new bootstrap.Modal(document.getElementById('modalEditarAMFE'));
+    modal.show();
+  }
+
+  // ---- Recalcular NPR en tiempo real ----
+  function recalcularNPR() {
+    const sev  = parseInt(document.getElementById('edit-sev').value)  || 0;
+    const ocur = parseInt(document.getElementById('edit-ocur').value) || 0;
+    const det  = parseInt(document.getElementById('edit-det').value)  || 0;
+    const npr  = sev * ocur * det;
+
+    const nprEl    = document.getElementById('modal-npr-preview');
+    const riesgoEl = document.getElementById('modal-riesgo-label');
+
+    nprEl.textContent = npr || '—';
+
+    if (npr === 0) {
+      nprEl.style.color = '#64748b';
+      riesgoEl.textContent = '';
+    } else if (npr <= 10) {
+      nprEl.style.color = '#16a34a';
+      riesgoEl.textContent = '🟢 Riesgo Bajo';
+      riesgoEl.style.color = '#16a34a';
+    } else if (npr <= 20) {
+      nprEl.style.color = '#ca8a04';
+      riesgoEl.textContent = '🟡 Riesgo Medio';
+      riesgoEl.style.color = '#ca8a04';
+    } else {
+      nprEl.style.color = '#dc2626';
+      riesgoEl.textContent = '🔴 Riesgo Crítico';
+      riesgoEl.style.color = '#dc2626';
+    }
+  }
+
+  // ---- Abrir modal de confirmación de eliminar ----
+  function confirmarEliminar(btn) {
+    const id    = btn.dataset.id;
+    const falla = btn.dataset.falla;
+
+    document.getElementById('formEliminarAMFE').action = `/eliminar_amfe/${id}`;
+    document.getElementById('eliminar-falla-info').textContent = `"${falla}"`;
+
+    const modal = new bootstrap.Modal(document.getElementById('modalEliminarAMFE'));
+    modal.show();
+  }
+</script>
+</body>
+</html>

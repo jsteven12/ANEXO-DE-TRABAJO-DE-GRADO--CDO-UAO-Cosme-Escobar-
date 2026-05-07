@@ -1,0 +1,2545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema AMFE - Clínica de Occidente S.A.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/3.0.3/plotly.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+
+        /* Contenedor principal */
+        .auth-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .logo-container {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.3);
+        }
+        .input-field {
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+        }
+        .input-field:focus {
+            border-color: #1e40af;
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        .shape {
+            position: absolute;
+            background: rgba(30, 64, 175, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        .shape:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        .shape:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+        .shape:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stats-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .rating-btn {
+            transition: all 0.3s ease;
+        }
+        .rating-btn:hover {
+            transform: scale(1.1);
+        }
+        .rating-btn.active {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px rgba(30, 64, 175, 0.5);
+        }
+        .risk-low { background: linear-gradient(135deg, #10b981, #34d399); }
+        .risk-medium { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .risk-high { background: linear-gradient(135deg, #ef4444, #f87171); }
+        .device-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .device-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .status-active { background: linear-gradient(135deg, #10b981, #34d399); }
+        .status-maintenance { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .status-inactive { background: linear-gradient(135deg, #6b7280, #9ca3af); }
+        .report-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .report-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .device-item {
+            transition: all 0.3s ease;
+        }
+        .device-item:hover {
+            background-color: #f8fafc;
+            transform: translateX(5px);
+        }
+        .page-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .page-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Smooth scrolling for anchor links */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div  id="loginPage" class="flex items-center justify-center p-4 min-h-screen">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+
+        <div class="auth-container rounded-3xl shadow-2xl overflow-hidden w-full max-w-6xl">
+            <div class="grid md:grid-cols-2 min-h-[600px]">
+                <!-- Logo Section -->
+                <div class="logo-container flex flex-col items-center justify-center p-12 text-white relative">
+                    <div class="text-center space-y-6">
+                        <div class="w-32 h-32 mx-auto bg-white rounded-full flex items-center justify-center shadow-lg">
+                            <i class="fas fa-hospital text-6xl text-blue-900"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-4xl font-bold mb-2">Clínica de Occidente S.A.</h1>
+                            <p class="text-blue-100 text-lg">Sistema de Gestión AMFE</p>
+                            <p class="text-blue-200 text-sm mt-4">Análisis de Modos de Fallo y Efectos</p>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-8 left-8 right-8">
+                        <div class="bg-white bg-opacity-20 rounded-xl p-4 backdrop-blur-sm">
+                            <p class="text-sm text-center">
+                                <i class="fas fa-shield-alt mr-2"></i>
+                                Sistema certificado para gestión de dispositivos médicos
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Login Form -->
+               <div class="p-12 flex flex-col justify-center">
+                    <div class="w-full max-w-md mx-auto">
+                        <div class="text-center mb-8">
+                            <h2 class="text-3xl font-bold text-gray-800 mb-2">Bienvenido</h2>
+                            <p class="text-gray-600">Ingrese sus credenciales para continuar</p>
+                        </div>
+
+
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="mb-4">
+      {% for category, message in messages %}
+        <div class="p-3 rounded-lg 
+                    {% if category == 'success' %} bg-green-100 text-green-800
+                    {% elif category == 'danger' %} bg-red-100 text-red-800
+                    {% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+                        <form id="loginForm" class="space-y-6" method="POST" action="/">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-user mr-2 text-blue-600"></i>Usuario
+                                </label>
+                                <input type="text"  name= "username" id="username" class="input-field w-full px-4 py-3 rounded-xl bg-gray-50 focus:bg-white outline-none" placeholder="Ingrese su usuario" required>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-lock mr-2 text-blue-600"></i>Contraseña
+                                </label>
+                                <div class="relative">
+                                    <input type="password" name="password" id="password" class="input-field w-full px-4 py-3 pr-12 rounded-xl bg-gray-50 focus:bg-white outline-none" placeholder="Ingrese su contraseña" required>
+                                    <button  type="button" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600" onclick="togglePassword()">
+                                        <i class="fas fa-eye" id="eyeIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <label class="flex items-center">
+                                    <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-600">Recordarme</span>
+                                </label>
+                                <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium">¿Olvidó su contraseña?</a>
+                            </div>
+
+                            <button type="submit" class="btn-primary w-full py-4 px-6 text-white font-semibold rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-300">
+                                <i class="fas fa-sign-in-alt mr-2"></i>Iniciar Sesión
+                            </button>
+                        </form>
+
+                        <div class="mt-8 text-center">
+                            <p class="text-gray-600 text-sm">¿No tiene una cuenta?</p>
+                            <button onclick="showRegister()" class="text-blue-600 hover:text-blue-800 font-semibold mt-1">
+                                Registrarse aquí
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Modal -->
+        <div id="registerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-md">
+                <div class="p-8">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Registro de Usuario</h3>
+                        <p class="text-gray-600">Complete el formulario para crear su cuenta</p>
+                    </div>
+
+                    <form id="registerForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nombre Completo</label>
+                            <input type="text" class="input-field w-full px-4 py-3 rounded-xl bg-gray-50 focus:bg-white outline-none" placeholder="Ingrese su nombre completo" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Usuario</label>
+                            <input type="text" class="input-field w-full px-4 py-3 rounded-xl bg-gray-50 focus:bg-white outline-none" placeholder="Ingrese su usuario" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Correo Electrónico</label>
+                            <input type="email" class="input-field w-full px-4 py-3 rounded-xl bg-gray-50 focus:bg-white outline-none" placeholder="Ingrese su correo" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Contraseña</label>
+                            <input type="password" class="input-field w-full px-4 py-3 rounded-xl bg-gray-50 focus:bg-white outline-none" placeholder="Ingrese su contraseña" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Confirmar Contraseña</label>
+                            <input type="password" class="input-field w-full px-4 py-3 rounded-xl bg-gray-50 focus:bg-white outline-none" placeholder="Confirme su contraseña" required>
+                        </div>
+
+                        <div class="flex space-x-4 pt-4">
+                            <button type="button" onclick="hideRegister()" class="flex-1 py-3 px-6 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn-primary flex-1 py-3 px-6 text-white font-semibold rounded-xl">
+                                Registrarse
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App (Dashboard and other pages) -->
+    <div id="mainApp" class="min-h-screen hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-40">
+            <div class="px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-800 to-blue-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-hospital text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Clínica de Occidente S.A.</h1>
+                        <p class="text-sm text-gray-600">Sistema Análisis de Fallo Modal (AMFE)</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-bell text-lg"></i>
+                    </button>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span class="text-white font-semibold text-sm" id="userInitials">DR</span>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-semibold text-gray-800" id="userName">Dr. Usuario</p>
+                            <p class="text-xs text-gray-600" id="userRole">Administrador</p>
+                        </div>
+                        <button onclick="logout()" class="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                            <i class="fas fa-sign-out-alt text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex min-h-screen">
+            <!-- Sidebar -->
+            <aside class="sidebar w-64 text-white sticky top-16 h-[calc(100vh-4rem)]">
+                <nav class="p-6 space-y-2">
+                    <a href="#dashboard" onclick="navigateTo('dashboard')" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white bg-opacity-20 backdrop-blur-sm">
+                        <i class="fas fa-tachometer-alt text-lg"></i>
+                        <span class="font-medium">Dashboard</span>
+                    </a>
+                    <a href="#amfe" onclick="navigateTo('amfe')" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white hover:bg-opacity-10 transition-colors">
+                        <i class="fas fa-clipboard-check text-lg"></i>
+                        <span class="font-medium">Matriz AMFE</span>
+                    </a>
+                    <a href="#dispositivos" onclick="navigateTo('dispositivos')" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white hover:bg-opacity-10 transition-colors">
+                        <i class="fas fa-heartbeat text-lg"></i>
+                        <span class="font-medium">Dispositivos</span>
+                    </a>
+                    <a href="#reportes" onclick="navigateTo('reportes')" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white hover:bg-opacity-10 transition-colors">
+                        <i class="fas fa-chart-line text-lg"></i>
+                        <span class="font-medium">Reportes</span>
+                    </a>
+                    <a href="#estadisticas" onclick="navigateTo('estadisticas')" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white hover:bg-opacity-10 transition-colors">
+                        <i class="fas fa-chart-pie text-lg"></i>
+                        <span class="font-medium">Estadísticas</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 p-8">
+                <!-- Dashboard Page -->
+                <section id="dashboard" class="page-section active">
+                    <!-- Welcome Section -->
+                    <div class="mb-8">
+                        <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h2 class="text-3xl font-bold gradient-text mb-2">¡Bienvenido al Sistema AMFE!</h2>
+                                    <p class="text-gray-600 text-lg" id="welcomeMessage">Dr. Usuario, gestione sus dispositivos médicos de forma eficiente</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm text-gray-500">Último acceso</p>
+                                    <p class="text-sm font-semibold text-gray-700" id="lastLogin">Hoy, 10:30 AM</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="stats-card rounded-2xl p-6 card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Total Dispositivos</p>
+                                    <p class="text-3xl font-bold text-gray-800">24</p>
+                                </div>
+                                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-heartbeat text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center">
+                                <span class="text-green-500 text-sm font-medium">
+                                    <i class="fas fa-arrow-up mr-1"></i>12%
+                                </span>
+                                <span class="text-gray-500 text-sm ml-2">vs mes anterior</span>
+                            </div>
+                        </div>
+
+                        <div class="stats-card rounded-2xl p-6 card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">AMFE Completadas</p>
+                                    <p class="text-3xl font-bold text-gray-800">18</p>
+                                </div>
+                                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-clipboard-check text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center">
+                                <span class="text-green-500 text-sm font-medium">
+                                    <i class="fas fa-arrow-up mr-1"></i>8%
+                                </span>
+                                <span class="text-gray-500 text-sm ml-2">vs mes anterior</span>
+                            </div>
+                        </div>
+
+                        <div class="stats-card rounded-2xl p-6 card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Riesgo Alto</p>
+                                    <p class="text-3xl font-bold text-red-600">3</p>
+                                </div>
+                                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center">
+                                <span class="text-red-500 text-sm font-medium">
+                                    <i class="fas fa-arrow-down mr-1"></i>25%
+                                </span>
+                                <span class="text-gray-500 text-sm ml-2">vs mes anterior</span>
+                            </div>
+                        </div>
+
+                        <div class="stats-card rounded-2xl p-6 card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Pendientes</p>
+                                    <p class="text-3xl font-bold text-orange-600">6</p>
+                                </div>
+                                <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-clock text-orange-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center">
+                                <span class="text-orange-500 text-sm font-medium">
+                                    <i class="fas fa-minus mr-1"></i>0%
+                                </span>
+                                <span class="text-gray-500 text-sm ml-2">vs mes anterior</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Distribución de Riesgos</h3>
+                            <div id="riskChart" style="height: 300px;"></div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Estado de Dispositivos</h3>
+                            <div id="statusChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activities -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Actividades Recientes</h3>
+                            <button class="text-blue-600 hover:text-blue-800 font-medium">Ver todas</button>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
+                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-check text-green-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-gray-800">AMFE completada - Desfibrilador Cardioversor</p>
+                                    <p class="text-sm text-gray-600">Calificación final: 2.3 - Riesgo Bajo</p>
+                                </div>
+                                <span class="text-sm text-gray-500">Hace 2 horas</span>
+                            </div>
+
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-plus text-blue-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-gray-800">Nuevo dispositivo registrado</p>
+                                    <p class="text-sm text-gray-600">Ventilador Mecánico - Modelo VN-500</p>
+                                </div>
+                                <span class="text-sm text-gray-500">Hace 5 horas</span>
+                            </div>
+
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
+                                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-exclamation text-orange-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-gray-800">Revisión pendiente</p>
+                                    <p class="text-sm text-gray-600">Monitor de Signos Vitales requiere AMFE</p>
+                                </div>
+                                <span class="text-sm text-gray-500">Hace 1 día</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- AMFE Page -->
+                <section id="amfe" class="page-section">
+                    <!-- Header Section -->
+                    <div class="mb-8">
+                        <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Matriz AMFE</h2>
+                                    <p class="text-gray-600 text-lg">Análisis de Modos de Fallo y Efectos - Calificación de Dispositivos Médicos</p>
+                                </div>
+                                <div class="text-right">
+                                    <button onclick="generateReport()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+                                        <i class="fas fa-file-pdf mr-2"></i>Generar Reporte
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AMFE Matrix -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Evaluación de Dispositivos</h3>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-4 h-4 risk-low rounded"></div>
+                                    <span class="text-sm text-gray-600">Bajo (1-2)</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-4 h-4 risk-medium rounded"></div>
+                                    <span class="text-sm text-gray-600">Medio (3)</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-4 h-4 risk-high rounded"></div>
+                                    <span class="text-sm text-gray-600">Alto (4-5)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Device Selection -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Seleccionar Dispositivo</label>
+                            <select id="deviceSelect" onchange="loadDeviceAMFE()" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">-- Seleccione un dispositivo --</option>
+                                <option value="desfibrilador">Desfibrilador Cardioversor</option>
+                                <option value="ventilador">Ventilador Mecánico</option>
+                                <option value="monitor">Monitor de Signos Vitales</option>
+                                <option value="bomba">Bomba de Infusión</option>
+                                <option value="incubadora">Incubadora Neonatal</option>
+                            </select>
+                        </div>
+
+                        <!-- AMFE Evaluation Form -->
+                        <div id="amfeForm" class="hidden">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Failure Modes -->
+                                <div class="space-y-4">
+                                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Modos de Fallo</h4>
+                                    
+                                    <div class="space-y-3" id="failureModes">
+                                        <!-- Failure modes will be populated by JavaScript -->
+                                    </div>
+                                </div>
+
+                                <!-- Effects and Controls -->
+                                <div class="space-y-4">
+                                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Efectos y Controles</h4>
+                                    
+                                    <div class="space-y-3" id="effectsControls">
+                                        <!-- Effects and controls will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Risk Priority Number -->
+                            <div class="mt-8 p-6 bg-gray-50 rounded-xl">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-lg font-semibold text-gray-800">Número de Prioridad de Riesgo (NPR)</h4>
+                                        <p class="text-gray-600">Severidad × Ocurrencia × Detección</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-3xl font-bold" id="riskScore">0</div>
+                                        <div class="text-sm text-gray-600" id="riskLevel">Sin evaluar</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="mt-6 flex space-x-4">
+                                <button onclick="saveAMFE()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+                                    <i class="fas fa-save mr-2"></i>Guardar Evaluación
+                                </button>
+                                <button onclick="clearForm()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+                                    <i class="fas fa-eraser mr-2"></i>Limpiar Formulario
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent AMFE Evaluations -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Evaluaciones AMFE Recientes</h3>
+                        
+                        <div class="space-y-4" id="recentAMFE">
+                            <!-- Recent evaluations will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Dispositivos Page -->
+                <section id="dispositivos" class="page-section">
+                    <!-- Header Section -->
+                    <div class="mb-8">
+                        <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Gestión de Dispositivos Médicos</h2>
+                                    <p class="text-gray-600 text-lg">Administre el inventario de dispositivos médicos y su estado</p>
+                                </div>
+                                <div class="flex space-x-4">
+                                    <button onclick="showAddDeviceModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+                                        <i class="fas fa-plus mr-2"></i>Agregar Dispositivo
+                                    </button>
+                                    <button onclick="exportDevices()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+                                        <i class="fas fa-download mr-2"></i>Exportar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Buscar</label>
+                                <input type="text" id="searchInput" onkeyup="filterDevices()" placeholder="Buscar dispositivo..." 
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Estado</label>
+                                <select id="statusFilter" onchange="filterDevices()" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Todos</option>
+                                    <option value="Activo">Activo</option>
+                                    <option value="Mantenimiento">Mantenimiento</option>
+                                    <option value="Inactivo">Inactivo</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Riesgo</label>
+                                <select id="riskFilter" onchange="filterDevices()" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Todos</option>
+                                    <option value="Bajo">Bajo</option>
+                                    <option value="Medio">Medio</option>
+                                    <option value="Alto">Alto</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Ubicación</label>
+                                <select id="locationFilter" onchange="filterDevices()" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Todas</option>
+                                    <option value="UCI">UCI</option>
+                                    <option value="UCIN">UCIN</option>
+                                    <option value="Quirófano">Quirófano</option>
+                                    <option value="Emergencias">Emergencias</option>
+                                    <option value="Hospitalización">Hospitalización</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Devices Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="devicesGrid">
+                        <!-- Devices will be populated by JavaScript -->
+                    </div>
+
+                    <!-- Statistics -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Distribución por Estado</h3>
+                            <div id="statusChartDevices" style="height: 300px;"></div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Distribución por Riesgo</h3>
+                            <div id="riskChartDevices" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reportes Page -->
+                <section id="reportes" class="page-section">
+                    <!-- Header Section -->
+                    <div class="mb-8">
+                        <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h2 class="text-3xl font-bold gradient-text mb-2">Generación de Reportes</h2>
+                                    <p class="text-gray-600 text-lg">Cree reportes personalizados con gráficas y análisis estadístico</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm text-gray-500">Última actualización</p>
+                                    <p class="text-sm font-semibold text-gray-700" id="lastUpdate">Hoy, 10:30 AM</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Report Types -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="report-card rounded-2xl p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-file-medical text-blue-600 text-xl"></i>
+                                </div>
+                                <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">Más usado</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">Reporte de Dispositivos</h3>
+                            <p class="text-gray-600 mb-4">Reporte completo con estado, mantenimiento y calificación AMFE de todos los dispositivos</p>
+                            <button onclick="generateDeviceReport()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl font-semibold transition-colors">
+                                <i class="fas fa-file-pdf mr-2"></i>Generar Reporte
+                            </button>
+                        </div>
+
+                        <div class="report-card rounded-2xl p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-clipboard-check text-green-600 text-xl"></i>
+                                </div>
+                                <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">Nuevo</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">Acta de Reporte</h3>
+                            <p class="text-gray-600 mb-4">Documento oficial con hallazgos, recomendaciones y plan de acción</p>
+                            <button onclick="generateActaReport()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-xl font-semibold transition-colors">
+                                <i class="fas fa-file-alt mr-2"></i>Generar Acta
+                            </button>
+                        </div>
+
+                        <div class="report-card rounded-2xl p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-chart-bar text-purple-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">Estadísticas Mensuales</h3>
+                            <p class="text-gray-600 mb-4">Análisis estadístico completo con gráficos y tendencias mensuales</p>
+                            <button onclick="generateStatisticsReport()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-xl font-semibold transition-colors">
+                                <i class="fas fa-chart-line mr-2"></i>Generar Estadísticas
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Report Configuration -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Configuración de Reportes</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo de Reporte</label>
+                                <select id="reportType" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="devices">Reporte de Dispositivos</option>
+                                    <option value="amfe">Reporte AMFE</option>
+                                    <option value="maintenance">Reporte de Mantenimiento</option>
+                                    <option value="risk">Análisis de Riesgo</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Período</label>
+                                <select id="reportPeriod" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="month">Este Mes</option>
+                                    <option value="quarter">Este Trimestre</option>
+                                    <option value="year">Este Año</option>
+                                    <option value="custom">Personalizado</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Formato</label>
+                                <select id="reportFormat" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="pdf">PDF</option>
+                                    <option value="excel">Excel</option>
+                                    <option value="csv">CSV</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Incluir Gráficos</label>
+                                <div class="flex items-center space-x-4 mt-3">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="includeCharts" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                                        <span class="ml-2 text-sm text-gray-600">Incluir gráficos</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="includeDetails" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                                        <span class="ml-2 text-sm text-gray-600">Incluir detalles</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 flex space-x-4">
+                            <button onclick="generateCustomReport()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+                                <i class="fas fa-cog mr-2"></i>Generar Reporte Personalizado
+                            </button>
+                            <button onclick="previewReport()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+                                <i class="fas fa-eye mr-2"></i>Vista Previa
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Reports -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Reportes Generados Recientemente</h3>
+                            <button onclick="clearReports()" class="text-red-600 hover:text-red-800 font-medium">Limpiar Historial</button>
+                        </div>
+                        
+                        <div class="space-y-4" id="recentReports">
+                            <!-- Recent reports will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Estadísticas Page -->
+                <section id="estadisticas" class="page-section">
+                    <!-- Header Section -->
+                    <div class="mb-8">
+                        <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h2 class="text-3xl font-bold gradient-text mb-2">Estadísticas y Análisis</h2>
+                                    <p class="text-gray-600 text-lg">Visualización detallada del rendimiento y estado de los dispositivos médicos</p>
+                                </div>
+                                <div class="flex space-x-4">
+                                    <select id="periodSelect" onchange="updateStatistics()" class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="month">Este Mes</option>
+                                        <option value="quarter">Este Trimestre</option>
+                                        <option value="year">Este Año</option>
+                                        <option value="all">Todo el Período</option>
+                                    </select>
+                                    <button onclick="exportStatistics()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl font-semibold transition-colors">
+                                        <i class="fas fa-download mr-2"></i>Exportar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Metrics -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="stats-card rounded-2xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Tasa de Cumplimiento AMFE</p>
+                                    <p class="text-3xl font-bold text-green-600" id="complianceRate">75%</p>
+                                </div>
+                                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center">
+                                <span class="text-green-500 text-sm font-medium">
+                                    <i class="fas fa-arrow-up mr-1"></i>+5%
+                                </span>
+                                <span class="text-gray-500 text-sm ml-2">vs mes anterior</span>
+                            </div>
+                        </div>
+
+                        <div class="stats-card rounded-2xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Dispositivos Críticos</p>
+                                    <p class="text-3xl font-bold text-red-600" id="criticalDevices">3</p>
+                                </div>
+                                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center">
+                                <span class="text-red-500 text-sm font-medium">
+                                    <i class="fas fa-arrow-down mr-1"></i>-25%
+                                </span>
+                                <span class="text-gray-500 text-sm ml-2">vs mes anterior</span>
+                            </div>
+                        </div>
+
+                        <div class="stats-card rounded-2xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Tiempo Promedio AMFE</p>
+                                    <p class="text-3xl font-bold text-blue-600" id="avgAMFETime">2.3</p>
+                                </div>
+                                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-clock text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center">
+                                <span class="text-blue-500 text-sm font-medium">
+                                    <i class="fas fa-arrow-down mr-1"></i>-0.5 días
+                                </span>
+                                <span class="text-gray-500 text-sm ml-2">vs mes anterior</span>
+                            </div>
+                        </div>
+
+                        <div class="stats-card rounded-2xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Mantenimientos Realizados</p>
+                                    <p class="text-3xl font-bold text-orange-600" id="maintenanceCount">12</p>
+                                </div>
+                                <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-tools text-orange-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center">
+                                <span class="text-orange-500 text-sm font-medium">
+                                    <i class="fas fa-arrow-up mr-1"></i>+8%
+                                </span>
+                                <span class="text-gray-500 text-sm ml-2">vs mes anterior</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <!-- Evolution Chart -->
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-xl font-bold text-gray-800">Evolución Mensual</h3>
+                                <div class="flex space-x-2">
+                                    <button onclick="toggleChart('devices')" id="btnDevices" class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg">Dispositivos</button>
+                                    <button onclick="toggleChart('amfe')" id="btnAMFE" class="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded-lg">AMFE</button>
+                                    <button onclick="toggleChart('maintenance')" id="btnMaintenance" class="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded-lg">Mantenimiento</button>
+                                </div>
+                            </div>
+                            <div id="evolutionChart" style="height: 350px;"></div>
+                        </div>
+
+                        <!-- Risk Distribution -->
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-6">Distribución de Riesgo por Dispositivo</h3>
+                            <div id="riskDistributionChart" style="height: 350px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Statistics -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Device Performance -->
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-6">Rendimiento por Dispositivo</h3>
+                            <div class="space-y-4" id="devicePerformance">
+                                <!-- Device performance items will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Maintenance Schedule -->
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-6">Próximos Mantenimientos</h3>
+                            <div class="space-y-4" id="maintenanceSchedule">
+                                <!-- Maintenance items will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Risk Analysis -->
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-6">Análisis de Riesgo</h3>
+                            <div id="riskAnalysisChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- Add/Edit Device Modal -->
+        <div id="deviceModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div class="p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800" id="modalTitle">Agregar Dispositivo Médico</h3>
+                        <button onclick="hideDeviceModal()" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg">
+                            <i class="fas fa-times text-lg"></i>
+                        </button>
+                    </div>
+
+                    <form id="deviceForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Código</label>
+                                <input type="text" id="deviceCode" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Nombre</label>
+                                <input type="text" id="deviceName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Modelo</label>
+                                <input type="text" id="deviceModel" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Registro Sanitario</label>
+                                <input type="text" id="deviceRegistry" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Estado</label>
+                                <select id="deviceStatus" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                                    <option value="">Seleccione estado</option>
+                                    <option value="Activo">Activo</option>
+                                    <option value="Mantenimiento">Mantenimiento</option>
+                                    <option value="Inactivo">Inactivo</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Ubicación</label>
+                                <select id="deviceLocation" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                                    <option value="">Seleccione ubicación</option>
+                                    <option value="UCI">UCI</option>
+                                    <option value="UCIN">UCIN</option>
+                                    <option value="Quirófano">Quirófano</option>
+                                    <option value="Emergencias">Emergencias</option>
+                                    <option value="Hospitalización">Hospitalización</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
+                            <textarea id="deviceDescription" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required></textarea>
+                        </div>
+
+                        <div class="flex space-x-4 pt-4">
+                            <button type="button" onclick="hideDeviceModal()" class="flex-1 py-3 px-6 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white flex-1 py-3 px-6 font-semibold rounded-xl">
+                                <i class="fas fa-save mr-2"></i>Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Modal -->
+        <div id="previewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <div class="p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">Vista Previa del Reporte</h3>
+                        <button onclick="hidePreviewModal()" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg">
+                            <i class="fas fa-times text-lg"></i>
+                        </button>
+                    </div>
+
+                    <div id="previewContent" class="border border-gray-200 rounded-xl p-6 bg-gray-50">
+                        <!-- Preview content will be populated by JavaScript -->
+                    </div>
+
+                    <div class="mt-6 flex space-x-4">
+                        <button onclick="downloadReport()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+                            <i class="fas fa-download mr-2"></i>Descargar PDF
+                        </button>
+                        <button onclick="hidePreviewModal()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation and page management
+        function navigateTo(section) {
+            // Hide all sections
+            document.querySelectorAll('.page-section').forEach(s => {
+                s.classList.remove('active');
+            });
+            
+            // Show the selected section
+            document.getElementById(section).classList.add('active');
+            
+            // Update sidebar active state
+            document.querySelectorAll('nav a').forEach(link => {
+                link.classList.remove('bg-white', 'bg-opacity-20', 'backdrop-blur-sm');
+            });
+            
+            // Find and activate the current link
+            const currentLink = Array.from(document.querySelectorAll('nav a')).find(link => 
+                link.getAttribute('href') === `#${section}`
+            );
+            if (currentLink) {
+                currentLink.classList.add('bg-white', 'bg-opacity-20', 'backdrop-blur-sm');
+            }
+            
+            // Initialize charts if needed
+            if (section === 'dashboard') {
+                initializeDashboardCharts();
+            } else if (section === 'dispositivos') {
+                renderDevices();
+            } else if (section === 'estadisticas') {
+                initializeStatisticsCharts();
+            }
+        }
+
+        // Login functionality
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.className = 'fas fa-eye';
+            }
+        }
+
+        function showRegister() {
+            document.getElementById('registerModal').classList.remove('hidden');
+        }
+
+        function hideRegister() {
+            document.getElementById('registerModal').classList.add('hidden');
+        }
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Simulación de autenticación (en producción esto se conectaría al backend)
+            if (username && password) {
+                // Guardar datos de usuario en localStorage
+                localStorage.setItem('currentUser', JSON.stringify({
+                    username: username,
+                    name: 'Dr. ' + username.charAt(0).toUpperCase() + username.slice(1),
+                    role: 'Administrador',
+                    loginTime: new Date().toISOString()
+                }));
+                
+                // Switch to main app
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                
+                // Load user data
+                loadUserData();
+            } else {
+                alert('Por favor ingrese usuario y contraseña');
+            }
+        });
+
+        // Register form handler
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simulación de registro
+            alert('Registro exitoso. Por favor inicie sesión.');
+            hideRegister();
+        });
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('registerModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideRegister();
+            }
+        });
+
+        // Load user data
+        function loadUserData() {
+            const userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            if (userData.name) {
+                document.getElementById('userName').textContent = userData.name;
+                document.getElementById('welcomeMessage').textContent = `${userData.name}, gestione sus dispositivos médicos de forma eficiente`;
+                document.getElementById('userInitials').textContent = userData.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            }
+            if (userData.role) {
+                document.getElementById('userRole').textContent = userData.role;
+            }
+            if (userData.loginTime) {
+                const loginDate = new Date(userData.loginTime);
+                document.getElementById('lastLogin').textContent = loginDate.toLocaleString('es-CO');
+            }
+        }
+
+        // Dashboard Charts
+        function initializeDashboardCharts() {
+            // Risk Distribution Chart
+            const riskData = [{
+                values: [15, 6, 3],
+                labels: ['Riesgo Bajo', 'Riesgo Medio', 'Riesgo Alto'],
+                type: 'pie',
+                hole: 0.4,
+                marker: {
+                    colors: ['#10b981', '#f59e0b', '#ef4444']
+                },
+                textinfo: 'label+percent',
+                textposition: 'outside'
+            }];
+
+            const riskLayout = {
+                showlegend: false,
+                margin: { t: 0, b: 0, l: 0, r: 0 },
+                font: { size: 12 }
+            };
+
+            Plotly.newPlot('riskChart', riskData, riskLayout, {responsive: true, displayModeBar: false});
+
+            // Device Status Chart
+            const statusData = [{
+                x: ['Operativo', 'Mantenimiento', 'Fuera de Servicio'],
+                y: [18, 4, 2],
+                type: 'bar',
+                marker: {
+                    color: ['#10b981', '#f59e0b', '#ef4444']
+                }
+            }];
+
+            const statusLayout = {
+                xaxis: { title: 'Estado' },
+                yaxis: { title: 'Cantidad' },
+                margin: { t: 20, b: 60, l: 60, r: 20 },
+                font: { size: 12 }
+            };
+
+            Plotly.newPlot('statusChart', statusData, statusLayout, {responsive: true, displayModeBar: false});
+        }
+
+        // AMFE functionality
+        // AMFE Data Structure
+        const devices = {
+            desfibrilador: {
+                name: 'Desfibrilador Cardioversor',
+                failureModes: [
+                    { id: 'f1', name: 'Fallo en la descarga eléctrica', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f2', name: 'Error en el análisis del ritmo cardíaco', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f3', name: 'Batería descargada', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f4', name: 'Electrodos desconectados', severity: 0, occurrence: 0, detection: 0 }
+                ]
+            },
+            ventilador: {
+                name: 'Ventilador Mecánico',
+                failureModes: [
+                    { id: 'f5', name: 'Fuga en el circuito respiratorio', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f6', name: 'Fallo en el suministro de oxígeno', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f7', name: 'Alarma de presión alta', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f8', name: 'Fallo en el sensor de flujo', severity: 0, occurrence: 0, detection: 0 }
+                ]
+            },
+            monitor: {
+                name: 'Monitor de Signos Vitales',
+                failureModes: [
+                    { id: 'f9', name: 'Lectura incorrecta de presión arterial', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f10', name: 'Fallo en el sensor de temperatura', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f11', name: 'Alarma falsa de taquicardia', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f12', name: 'Pantalla sin visualización', severity: 0, occurrence: 0, detection: 0 }
+                ]
+            },
+            bomba: {
+                name: 'Bomba de Infusión',
+                failureModes: [
+                    { id: 'f13', name: 'Infusión a velocidad incorrecta', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f14', name: 'Obstrucción en la línea', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f15', name: 'Aire en la línea', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f16', name: 'Fallo en la bomba peristáltica', severity: 0, occurrence: 0, detection: 0 }
+                ]
+            },
+            incubadora: {
+                name: 'Incubadora Neonatal',
+                failureModes: [
+                    { id: 'f17', name: 'Control de temperatura inestable', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f18', name: 'Fallo en el humidificador', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f19', name: 'Puerta mal cerrada', severity: 0, occurrence: 0, detection: 0 },
+                    { id: 'f20', name: 'Alarma de oxígeno bajo', severity: 0, occurrence: 0, detection: 0 }
+                ]
+            }
+        };
+
+        let currentDevice = null;
+        let currentRatings = {};
+
+        function loadDeviceAMFE() {
+            const deviceId = document.getElementById('deviceSelect').value;
+            if (!deviceId) {
+                document.getElementById('amfeForm').classList.add('hidden');
+                return;
+            }
+
+            currentDevice = deviceId;
+            const device = devices[deviceId];
+            
+            // Initialize ratings
+            currentRatings = {};
+            device.failureModes.forEach(mode => {
+                currentRatings[mode.id] = { severity: 0, occurrence: 0, detection: 0 };
+            });
+
+            // Populate failure modes
+            const failureModesContainer = document.getElementById('failureModes');
+            failureModesContainer.innerHTML = '';
+
+            device.failureModes.forEach(mode => {
+                const modeElement = createFailureModeElement(mode);
+                failureModesContainer.appendChild(modeElement);
+            });
+
+            // Populate effects and controls
+            const effectsContainer = document.getElementById('effectsControls');
+            effectsContainer.innerHTML = '';
+
+            device.failureModes.forEach(mode => {
+                const effectElement = createEffectControlElement(mode);
+                effectsContainer.appendChild(effectElement);
+            });
+
+            document.getElementById('amfeForm').classList.remove('hidden');
+            updateRiskScore();
+        }
+
+        function createFailureModeElement(mode) {
+            const div = document.createElement('div');
+            div.className = 'p-4 border border-gray-200 rounded-xl';
+            div.innerHTML = `
+                <h5 class="font-medium text-gray-800 mb-3">${mode.name}</h5>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Severidad</span>
+                        <div class="flex space-x-1">
+                            ${[1,2,3,4,5].map(i => `
+                                <button class="rating-btn w-8 h-8 rounded-full text-sm font-semibold ${i <= 2 ? 'bg-green-100 text-green-800' : i <= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}" 
+                                        onclick="setRating('${mode.id}', 'severity', ${i})">${i}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Ocurrencia</span>
+                        <div class="flex space-x-1">
+                            ${[1,2,3,4,5].map(i => `
+                                <button class="rating-btn w-8 h-8 rounded-full text-sm font-semibold ${i <= 2 ? 'bg-green-100 text-green-800' : i <= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}" 
+                                        onclick="setRating('${mode.id}', 'occurrence', ${i})">${i}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Detección</span>
+                        <div class="flex space-x-1">
+                            ${[1,2,3,4,5].map(i => `
+                                <button class="rating-btn w-8 h-8 rounded-full text-sm font-semibold ${i <= 2 ? 'bg-green-100 text-green-800' : i <= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}" 
+                                        onclick="setRating('${mode.id}', 'detection', ${i})">${i}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        function createEffectControlElement(mode) {
+            const div = document.createElement('div');
+            div.className = 'p-4 border border-gray-200 rounded-xl';
+            div.innerHTML = `
+                <h5 class="font-medium text-gray-800 mb-3">${mode.name}</h5>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Efecto Potencial</label>
+                        <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" 
+                                  placeholder="Describa el efecto potencial del fallo..." rows="2"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Controles Actuales</label>
+                        <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" 
+                                  placeholder="Describa los controles actuales..." rows="2"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Acciones Recomendadas</label>
+                        <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" 
+                                  placeholder="Describa las acciones recomendadas..." rows="2"></textarea>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        function setRating(modeId, category, value) {
+            if (!currentRatings[modeId]) {
+                currentRatings[modeId] = { severity: 0, occurrence: 0, detection: 0 };
+            }
+            currentRatings[modeId][category] = value;
+
+            // Update button states
+            const buttons = event.target.parentElement.querySelectorAll('.rating-btn');
+            buttons.forEach((btn, index) => {
+                btn.classList.remove('active');
+                if (index + 1 === value) {
+                    btn.classList.add('active');
+                }
+            });
+
+            updateRiskScore();
+        }
+
+        function updateRiskScore() {
+            if (!currentDevice) return;
+
+            const device = devices[currentDevice];
+            let totalRPN = 0;
+            let evaluatedModes = 0;
+
+            device.failureModes.forEach(mode => {
+                const ratings = currentRatings[mode.id];
+                if (ratings && ratings.severity > 0 && ratings.occurrence > 0 && ratings.detection > 0) {
+                    const rpn = ratings.severity * ratings.occurrence * ratings.detection;
+                    totalRPN += rpn;
+                    evaluatedModes++;
+                }
+            });
+
+            const averageRPN = evaluatedModes > 0 ? Math.round(totalRPN / evaluatedModes) : 0;
+            
+            document.getElementById('riskScore').textContent = averageRPN;
+            
+            const riskLevelElement = document.getElementById('riskLevel');
+            if (averageRPN <= 40) {
+                riskLevelElement.textContent = 'Riesgo Bajo';
+                riskLevelElement.className = 'text-sm font-semibold text-green-600';
+            } else if (averageRPN <= 100) {
+                riskLevelElement.textContent = 'Riesgo Medio';
+                riskLevelElement.className = 'text-sm font-semibold text-yellow-600';
+            } else {
+                riskLevelElement.textContent = 'Riesgo Alto';
+                riskLevelElement.className = 'text-sm font-semibold text-red-600';
+            }
+        }
+
+        function saveAMFE() {
+            if (!currentDevice) return;
+
+            const device = devices[currentDevice];
+            const evaluation = {
+                deviceId: currentDevice,
+                deviceName: device.name,
+                date: new Date().toISOString(),
+                ratings: currentRatings,
+                riskScore: document.getElementById('riskScore').textContent,
+                riskLevel: document.getElementById('riskLevel').textContent
+            };
+
+            // Save to localStorage
+            const savedEvaluations = JSON.parse(localStorage.getItem('amfeEvaluations') || '[]');
+            savedEvaluations.push(evaluation);
+            localStorage.setItem('amfeEvaluations', JSON.stringify(savedEvaluations));
+
+            alert('Evaluación AMFE guardada exitosamente');
+            loadRecentAMFE();
+        }
+
+        function clearForm() {
+            if (confirm('¿Está seguro de limpiar el formulario? Se perderán todos los datos no guardados.')) {
+                document.getElementById('deviceSelect').value = '';
+                document.getElementById('amfeForm').classList.add('hidden');
+                currentDevice = null;
+                currentRatings = {};
+            }
+        }
+
+        function generateReport() {
+            if (!currentDevice) {
+                alert('Por favor seleccione un dispositivo y complete la evaluación AMFE');
+                return;
+            }
+
+            alert('Reporte PDF generado exitosamente. Se descargará automáticamente.');
+        }
+
+        function loadRecentAMFE() {
+            const savedEvaluations = JSON.parse(localStorage.getItem('amfeEvaluations') || '[]');
+            const recentContainer = document.getElementById('recentAMFE');
+            
+            if (savedEvaluations.length === 0) {
+                recentContainer.innerHTML = '<p class="text-gray-500 text-center py-8">No hay evaluaciones AMFE guardadas</p>';
+                return;
+            }
+
+            recentContainer.innerHTML = savedEvaluations.slice(-5).reverse().map(evaluation => {
+                const date = new Date(evaluation.date);
+                const riskColor = evaluation.riskLevel.includes('Bajo') ? 'text-green-600' : 
+                                 evaluation.riskLevel.includes('Medio') ? 'text-yellow-600' : 'text-red-600';
+                
+                return `
+                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-clipboard-check text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-800">${evaluation.deviceName}</p>
+                                <p class="text-sm text-gray-600">${date.toLocaleDateString('es-CO')} ${date.toLocaleTimeString('es-CO')}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold ${riskColor}">${evaluation.riskScore}</div>
+                            <div class="text-sm text-gray-600">${evaluation.riskLevel}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Dispositivos functionality
+        // Sample devices data
+        let devicesData = [
+            {
+                id: 1,
+                code: 'DF-001',
+                name: 'Desfibrilador Cardioversor',
+                model: 'LIFEPAK 15',
+                registry: '2018DM-0001234',
+                status: 'Activo',
+                location: 'UCI',
+                description: 'Desfibrilador básico con monitor cardíaco incorporado',
+                risk: 'Medio',
+                lastMaintenance: '2024-09-15',
+                nextMaintenance: '2024-12-15'
+            },
+            {
+                id: 2,
+                code: 'VM-002',
+                name: 'Ventilador Mecánico',
+                model: 'VN-500',
+                registry: '2019DM-0005678',
+                status: 'Activo',
+                location: 'UCI',
+                description: 'Ventilador para soporte respiratorio en pacientes críticos',
+                risk: 'Alto',
+                lastMaintenance: '2024-09-20',
+                nextMaintenance: '2024-12-20'
+            },
+            {
+                id: 3,
+                code: 'MS-003',
+                name: 'Monitor de Signos Vitales',
+                model: 'IntelliVue MX800',
+                registry: '2020DM-0009012',
+                status: 'Mantenimiento',
+                location: 'UCI',
+                description: 'Monitor multiparamétrico para signos vitales',
+                risk: 'Bajo',
+                lastMaintenance: '2024-09-10',
+                nextMaintenance: '2024-12-10'
+            },
+            {
+                id: 4,
+                code: 'BI-004',
+                name: 'Bomba de Infusión',
+                model: 'Alaris PK',
+                registry: '2021DM-0003456',
+                status: 'Activo',
+                location: 'UCI',
+                description: 'Bomba de infusión para administración de medicamentos',
+                risk: 'Alto',
+                lastMaintenance: '2024-09-25',
+                nextMaintenance: '2024-12-25'
+            },
+            {
+                id: 5,
+                code: 'IN-005',
+                name: 'Incubadora Neonatal',
+                model: 'Giraffe Omnibed',
+                registry: '2020DM-0007890',
+                status: 'Activo',
+                location: 'UCIN',
+                description: 'Incubadora para cuidados intensivos neonatales',
+                risk: 'Alto',
+                lastMaintenance: '2024-09-18',
+                nextMaintenance: '2024-12-18'
+            },
+            {
+                id: 6,
+                code: 'EC-006',
+                name: 'Electrocardiógrafo',
+                model: 'MAC 2000',
+                registry: '2019DM-0002468',
+                status: 'Inactivo',
+                location: 'Emergencias',
+                description: 'Electrocardiógrafo de 12 derivaciones',
+                risk: 'Bajo',
+                lastMaintenance: '2024-08-15',
+                nextMaintenance: '2024-11-15'
+            }
+        ];
+
+        let editingDeviceId = null;
+
+        function renderDevices() {
+            const grid = document.getElementById('devicesGrid');
+            grid.innerHTML = '';
+
+            devicesData.forEach(device => {
+                const deviceCard = createDeviceCard(device);
+                grid.appendChild(deviceCard);
+            });
+
+            updateCharts();
+        }
+
+        function createDeviceCard(device) {
+            const div = document.createElement('div');
+            div.className = 'device-card rounded-2xl p-6';
+            
+            const statusClass = device.status === 'Activo' ? 'status-active' : 
+                               device.status === 'Mantenimiento' ? 'status-maintenance' : 'status-inactive';
+            
+            const riskClass = device.risk === 'Bajo' ? 'risk-low' : 
+                             device.risk === 'Medio' ? 'risk-medium' : 'risk-high';
+
+            div.innerHTML = `
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-heartbeat text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800">${device.name}</h3>
+                            <p class="text-sm text-gray-600">${device.model}</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <span class="px-3 py-1 text-xs font-semibold text-white rounded-full ${statusClass}">${device.status}</span>
+                        <span class="px-3 py-1 text-xs font-semibold text-white rounded-full ${riskClass}">${device.risk}</span>
+                    </div>
+                </div>
+                
+                <div class="space-y-2 mb-4">
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-600">Código:</span>
+                        <span class="font-medium text-gray-800">${device.code}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-600">Registro:</span>
+                        <span class="font-medium text-gray-800">${device.registry}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-600">Ubicación:</span>
+                        <span class="font-medium text-gray-800">${device.location}</span>
+                    </div>
+                </div>
+                
+                <p class="text-sm text-gray-600 mb-4">${device.description}</p>
+                
+                <div class="border-t pt-4">
+                    <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                        <span>Último mantenimiento: ${device.lastMaintenance}</span>
+                        <span>Próximo: ${device.nextMaintenance}</span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="editDevice(${device.id})" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
+                            <i class="fas fa-edit mr-1"></i>Editar
+                        </button>
+                        <button onclick="deleteDevice(${device.id})" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
+                            <i class="fas fa-trash mr-1"></i>Eliminar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        function showAddDeviceModal() {
+            editingDeviceId = null;
+            document.getElementById('modalTitle').textContent = 'Agregar Dispositivo Médico';
+            document.getElementById('deviceForm').reset();
+            document.getElementById('deviceModal').classList.remove('hidden');
+        }
+
+        function editDevice(deviceId) {
+            const device = devicesData.find(d => d.id === deviceId);
+            if (!device) return;
+
+            editingDeviceId = deviceId;
+            document.getElementById('modalTitle').textContent = 'Editar Dispositivo Médico';
+            
+            document.getElementById('deviceCode').value = device.code;
+            document.getElementById('deviceName').value = device.name;
+            document.getElementById('deviceModel').value = device.model;
+            document.getElementById('deviceRegistry').value = device.registry;
+            document.getElementById('deviceStatus').value = device.status;
+            document.getElementById('deviceLocation').value = device.location;
+            document.getElementById('deviceDescription').value = device.description;
+            
+            document.getElementById('deviceModal').classList.remove('hidden');
+        }
+
+        function hideDeviceModal() {
+            document.getElementById('deviceModal').classList.add('hidden');
+            editingDeviceId = null;
+        }
+
+        function deleteDevice(deviceId) {
+            if (confirm('¿Está seguro de eliminar este dispositivo?')) {
+                devicesData = devicesData.filter(d => d.id !== deviceId);
+                renderDevices();
+                saveDevices();
+            }
+        }
+
+        function filterDevices() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const riskFilter = document.getElementById('riskFilter').value;
+            const locationFilter = document.getElementById('locationFilter').value;
+
+            const filteredDevices = devicesData.filter(device => {
+                const matchesSearch = device.name.toLowerCase().includes(searchTerm) || 
+                                    device.code.toLowerCase().includes(searchTerm) ||
+                                    device.model.toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || device.status === statusFilter;
+                const matchesRisk = !riskFilter || device.risk === riskFilter;
+                const matchesLocation = !locationFilter || device.location === locationFilter;
+
+                return matchesSearch && matchesStatus && matchesRisk && matchesLocation;
+            });
+
+            renderFilteredDevices(filteredDevices);
+        }
+
+        function renderFilteredDevices(filteredDevices) {
+            const grid = document.getElementById('devicesGrid');
+            grid.innerHTML = '';
+
+            if (filteredDevices.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 text-lg">No se encontraron dispositivos con los filtros aplicados</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filteredDevices.forEach(device => {
+                const deviceCard = createDeviceCard(device);
+                grid.appendChild(deviceCard);
+            });
+        }
+
+        function updateCharts() {
+            // Status Chart
+            const statusCounts = devicesData.reduce((acc, device) => {
+                acc[device.status] = (acc[device.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const statusData = [{
+                x: Object.keys(statusCounts),
+                y: Object.values(statusCounts),
+                type: 'bar',
+                marker: {
+                    color: ['#10b981', '#f59e0b', '#6b7280']
+                }
+            }];
+
+            const statusLayout = {
+                xaxis: { title: 'Estado' },
+                yaxis: { title: 'Cantidad' },
+                margin: { t: 20, b: 60, l: 60, r: 20 },
+                font: { size: 12 }
+            };
+
+            Plotly.newPlot('statusChartDevices', statusData, statusLayout, {responsive: true, displayModeBar: false});
+
+            // Risk Chart
+            const riskCounts = devicesData.reduce((acc, device) => {
+                acc[device.risk] = (acc[device.risk] || 0) + 1;
+                return acc;
+            }, {});
+
+            const riskData = [{
+                values: Object.values(riskCounts),
+                labels: Object.keys(riskCounts),
+                type: 'pie',
+                hole: 0.4,
+                marker: {
+                    colors: ['#10b981', '#f59e0b', '#ef4444']
+                },
+                textinfo: 'label+percent',
+                textposition: 'outside'
+            }];
+
+            const riskLayout = {
+                showlegend: false,
+                margin: { t: 0, b: 0, l: 0, r: 0 },
+                font: { size: 12 }
+            };
+
+            Plotly.newPlot('riskChartDevices', riskData, riskLayout, {responsive: true, displayModeBar: false});
+        }
+
+        function exportDevices() {
+            alert('Exportando dispositivos a Excel...');
+        }
+
+        function saveDevices() {
+            localStorage.setItem('medicalDevices', JSON.stringify(devicesData));
+        }
+
+        function loadDevices() {
+            const saved = localStorage.getItem('medicalDevices');
+            if (saved) {
+                devicesData = JSON.parse(saved);
+            }
+        }
+
+        // Form submission
+        document.getElementById('deviceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const deviceData = {
+                code: document.getElementById('deviceCode').value,
+                name: document.getElementById('deviceName').value,
+                model: document.getElementById('deviceModel').value,
+                registry: document.getElementById('deviceRegistry').value,
+                status: document.getElementById('deviceStatus').value,
+                location: document.getElementById('deviceLocation').value,
+                description: document.getElementById('deviceDescription').value,
+                risk: 'Bajo', // Default risk
+                lastMaintenance: new Date().toISOString().split('T')[0],
+                nextMaintenance: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+            };
+
+            if (editingDeviceId) {
+                // Edit existing device
+                const deviceIndex = devicesData.findIndex(d => d.id === editingDeviceId);
+                if (deviceIndex !== -1) {
+                    devicesData[deviceIndex] = { ...devicesData[deviceIndex], ...deviceData };
+                }
+            } else {
+                // Add new device
+                const newDevice = {
+                    id: Math.max(...devicesData.map(d => d.id)) + 1,
+                    ...deviceData
+                };
+                devicesData.push(newDevice);
+            }
+
+            saveDevices();
+            renderDevices();
+            hideDeviceModal();
+        });
+
+        // Reportes functionality
+        let currentReportData = null;
+
+        function generateDeviceReport() {
+            const devices = JSON.parse(localStorage.getItem('medicalDevices') || '[]');
+            const amfeEvaluations = JSON.parse(localStorage.getItem('amfeEvaluations') || '[]');
+            
+            const reportData = {
+                title: 'Reporte de Dispositivos Médicos',
+                date: new Date().toLocaleDateString('es-CO'),
+                devices: devices,
+                amfeEvaluations: amfeEvaluations,
+                totalDevices: devices.length,
+                activeDevices: devices.filter(d => d.status === 'Activo').length,
+                maintenanceDevices: devices.filter(d => d.status === 'Mantenimiento').length,
+                completedAMFE: amfeEvaluations.length
+            };
+
+            generatePDFReport(reportData);
+            saveReport(reportData);
+        }
+
+        function generateActaReport() {
+            const reportData = {
+                title: 'Acta de Reporte AMFE',
+                date: new Date().toLocaleDateString('es-CO'),
+                type: 'acta',
+                findings: [
+                    'Se identificaron 3 dispositivos con riesgo alto que requieren atención inmediata',
+                    'El 75% de los dispositivos tienen AMFE completada',
+                    'Se recomienda programar mantenimiento preventivo para los equipos críticos'
+                ],
+                recommendations: [
+                    'Implementar programa de mantenimiento preventivo trimestral',
+                    'Capacitar al personal en el uso adecuado de dispositivos médicos',
+                    'Adquirir repuestos críticos para equipos de alto riesgo'
+                ],
+                actionPlan: [
+                    'Revisión semanal de dispositivos críticos',
+                    'Actualización mensual de la matriz AMFE',
+                    'Auditoría trimestral de calidad'
+                ]
+            };
+
+            generateActaPDF(reportData);
+            saveReport(reportData);
+        }
+
+        function generateStatisticsReport() {
+            const devices = JSON.parse(localStorage.getItem('medicalDevices') || '[]');
+            const amfeEvaluations = JSON.parse(localStorage.getItem('amfeEvaluations') || '[]');
+            
+            const reportData = {
+                title: 'Estadísticas Mensuales AMFE',
+                date: new Date().toLocaleDateString('es-CO'),
+                type: 'statistics',
+                devices: devices,
+                amfeEvaluations: amfeEvaluations,
+                monthlyData: generateMonthlyData(),
+                riskDistribution: calculateRiskDistribution(),
+                statusDistribution: calculateStatusDistribution()
+            };
+
+            generateStatisticsPDF(reportData);
+            saveReport(reportData);
+        }
+
+        function generateCustomReport() {
+            const reportType = document.getElementById('reportType').value;
+            const reportPeriod = document.getElementById('reportPeriod').value;
+            const reportFormat = document.getElementById('reportFormat').value;
+            const includeCharts = document.getElementById('includeCharts').checked;
+            const includeDetails = document.getElementById('includeDetails').checked;
+
+            const reportData = {
+                title: `Reporte Personalizado - ${reportType}`,
+                date: new Date().toLocaleDateString('es-CO'),
+                type: reportType,
+                period: reportPeriod,
+                format: reportFormat,
+                includeCharts: includeCharts,
+                includeDetails: includeDetails
+            };
+
+            alert(`Reporte personalizado generado en formato ${reportFormat}`);
+            saveReport(reportData);
+        }
+
+        function generatePDFReport(data) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFontSize(20);
+            doc.text('Clínica de Occidente S.A.', 20, 30);
+            doc.setFontSize(16);
+            doc.text(data.title, 20, 45);
+            doc.setFontSize(12);
+            doc.text(`Fecha: ${data.date}`, 20, 55);
+
+            // Summary
+            doc.setFontSize(14);
+            doc.text('Resumen Ejecutivo', 20, 75);
+            doc.setFontSize(12);
+            doc.text(`Total de dispositivos: ${data.totalDevices}`, 20, 90);
+            doc.text(`Dispositivos activos: ${data.activeDevices}`, 20, 105);
+            doc.text(`Dispositivos en mantenimiento: ${data.maintenanceDevices}`, 20, 120);
+            doc.text(`AMFE completadas: ${data.completedAMFE}`, 20, 135);
+
+            // Device list
+            doc.addPage();
+            doc.setFontSize(14);
+            doc.text('Listado de Dispositivos', 20, 30);
+            
+            let yPosition = 45;
+            data.devices.forEach((device, index) => {
+                if (yPosition > 250) {
+                    doc.addPage();
+                    yPosition = 30;
+                }
+                
+                doc.setFontSize(10);
+                doc.text(`${index + 1}. ${device.name} (${device.code})`, 20, yPosition);
+                doc.text(`Modelo: ${device.model}`, 20, yPosition + 10);
+                doc.text(`Estado: ${device.status}`, 20, yPosition + 20);
+                doc.text(`Ubicación: ${device.location}`, 20, yPosition + 30);
+                doc.text(`Riesgo: ${device.risk}`, 20, yPosition + 40);
+                yPosition += 50;
+            });
+
+            doc.save('reporte_dispositivos.pdf');
+            alert('Reporte PDF generado exitosamente');
+        }
+
+        function generateActaPDF(data) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFontSize(20);
+            doc.text('Clínica de Occidente S.A.', 20, 30);
+            doc.setFontSize(16);
+            doc.text(data.title, 20, 45);
+            doc.setFontSize(12);
+            doc.text(`Fecha: ${data.date}`, 20, 55);
+
+            // Hallazgos
+            doc.setFontSize(14);
+            doc.text('Hallazgos', 20, 75);
+            doc.setFontSize(12);
+            let yPosition = 90;
+            data.findings.forEach((finding, index) => {
+                doc.text(`${index + 1}. ${finding}`, 20, yPosition);
+                yPosition += 15;
+            });
+
+            // Recomendaciones
+            doc.setFontSize(14);
+            doc.text('Recomendaciones', 20, yPosition + 20);
+            doc.setFontSize(12);
+            yPosition += 35;
+            data.recommendations.forEach((rec, index) => {
+                doc.text(`${index + 1}. ${rec}`, 20, yPosition);
+                yPosition += 15;
+            });
+
+            // Plan de acción
+            doc.setFontSize(14);
+            doc.text('Plan de Acción', 20, yPosition + 20);
+            doc.setFontSize(12);
+            yPosition += 35;
+            data.actionPlan.forEach((action, index) => {
+                doc.text(`${index + 1}. ${action}`, 20, yPosition);
+                yPosition += 15;
+            });
+
+            doc.save('acta_reporte_amfe.pdf');
+            alert('Acta de reporte generada exitosamente');
+        }
+
+        function generateStatisticsPDF(data) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFontSize(20);
+            doc.text('Clínica de Occidente S.A.', 20, 30);
+            doc.setFontSize(16);
+            doc.text(data.title, 20, 45);
+            doc.setFontSize(12);
+            doc.text(`Fecha: ${data.date}`, 20, 55);
+
+            // Statistics
+            doc.setFontSize(14);
+            doc.text('Estadísticas Generales', 20, 75);
+            doc.setFontSize(12);
+            doc.text(`Total de dispositivos: ${data.devices.length}`, 20, 90);
+            doc.text(`Total de evaluaciones AMFE: ${data.amfeEvaluations.length}`, 20, 105);
+
+            // Risk distribution
+            doc.setFontSize(14);
+            doc.text('Distribución de Riesgo', 20, 125);
+            doc.setFontSize(12);
+            let yPosition = 140;
+            Object.entries(data.riskDistribution).forEach(([risk, count]) => {
+                doc.text(`${risk}: ${count} dispositivos`, 20, yPosition);
+                yPosition += 15;
+            });
+
+            doc.save('estadisticas_mensuales.pdf');
+            alert('Reporte de estadísticas generado exitosamente');
+        }
+
+        function generateMonthlyData() {
+            const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            return months.map(month => ({
+                month,
+                devices: Math.floor(Math.random() * 10) + 15,
+                amfeCompleted: Math.floor(Math.random() * 8) + 5,
+                maintenance: Math.floor(Math.random() * 5) + 1
+            }));
+        }
+
+        function calculateRiskDistribution() {
+            const devices = JSON.parse(localStorage.getItem('medicalDevices') || '[]');
+            return devices.reduce((acc, device) => {
+                acc[device.risk] = (acc[device.risk] || 0) + 1;
+                return acc;
+            }, {});
+        }
+
+        function calculateStatusDistribution() {
+            const devices = JSON.parse(localStorage.getItem('medicalDevices') || '[]');
+            return devices.reduce((acc, device) => {
+                acc[device.status] = (acc[device.status] || 0) + 1;
+                return acc;
+            }, {});
+        }
+
+        function saveReport(reportData) {
+            const savedReports = JSON.parse(localStorage.getItem('generatedReports') || '[]');
+            const report = {
+                id: Date.now(),
+                ...reportData,
+                timestamp: new Date().toISOString()
+            };
+            savedReports.unshift(report);
+            
+            // Keep only last 10 reports
+            if (savedReports.length > 10) {
+                savedReports.splice(10);
+            }
+            
+            localStorage.setItem('generatedReports', JSON.stringify(savedReports));
+            loadRecentReports();
+        }
+
+        function loadRecentReports() {
+            const savedReports = JSON.parse(localStorage.getItem('generatedReports') || '[]');
+            const container = document.getElementById('recentReports');
+            
+            if (savedReports.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No hay reportes generados recientemente</p>';
+                return;
+            }
+
+            container.innerHTML = savedReports.map(report => {
+                const date = new Date(report.timestamp);
+                return `
+                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-file-pdf text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-800">${report.title}</p>
+                                <p class="text-sm text-gray-600">${date.toLocaleDateString('es-CO')} ${date.toLocaleTimeString('es-CO')}</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="downloadReport(${report.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                <i class="fas fa-download mr-1"></i>Descargar
+                            </button>
+                            <button onclick="deleteReport(${report.id})" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                <i class="fas fa-trash mr-1"></i>Eliminar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function previewReport() {
+            const reportType = document.getElementById('reportType').value;
+            const previewContent = document.getElementById('previewContent');
+            
+            previewContent.innerHTML = `
+                <div class="text-center py-12">
+                    <i class="fas fa-file-pdf text-6xl text-blue-600 mb-4"></i>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Vista Previa</h3>
+                    <p class="text-gray-600">Reporte tipo: ${reportType}</p>
+                    <p class="text-gray-600">Este es un ejemplo de cómo se verá el reporte generado</p>
+                </div>
+            `;
+            
+            document.getElementById('previewModal').classList.remove('hidden');
+        }
+
+        function hidePreviewModal() {
+            document.getElementById('previewModal').classList.add('hidden');
+        }
+
+        function downloadReport(reportId = null) {
+            if (reportId) {
+                const savedReports = JSON.parse(localStorage.getItem('generatedReports') || '[]');
+                const report = savedReports.find(r => r.id === reportId);
+                if (report) {
+                    alert(`Descargando reporte: ${report.title}`);
+                }
+            } else {
+                alert('Descargando reporte personalizado...');
+            }
+        }
+
+        function deleteReport(reportId) {
+            if (confirm('¿Está seguro de eliminar este reporte?')) {
+                const savedReports = JSON.parse(localStorage.getItem('generatedReports') || '[]');
+                const updatedReports = savedReports.filter(r => r.id !== reportId);
+                localStorage.setItem('generatedReports', JSON.stringify(updatedReports));
+                loadRecentReports();
+            }
+        }
+
+        function clearReports() {
+            if (confirm('¿Está seguro de limpiar todo el historial de reportes?')) {
+                localStorage.removeItem('generatedReports');
+                loadRecentReports();
+            }
+        }
+
+        // Estadísticas functionality
+        let currentChartType = 'devices';
+        
+        // Sample data for charts
+        const monthlyDataStats = {
+            devices: [
+                { month: 'Ene', count: 18, new: 2, retired: 0 },
+                { month: 'Feb', count: 20, new: 3, retired: 1 },
+                { month: 'Mar', count: 22, new: 4, retired: 2 },
+                { month: 'Abr', count: 21, new: 1, retired: 2 },
+                { month: 'May', count: 23, new: 3, retired: 1 },
+                { month: 'Jun', count: 24, new: 2, retired: 1 },
+                { month: 'Jul', count: 25, new: 2, retired: 1 },
+                { month: 'Ago', count: 24, new: 1, retired: 2 },
+                { month: 'Sep', count: 26, new: 3, retired: 1 },
+                { month: 'Oct', count: 24, new: 1, retired: 3 },
+                { month: 'Nov', count: 27, new: 4, retired: 1 },
+                { month: 'Dic', count: 24, new: 0, retired: 3 }
+            ],
+            amfe: [
+                { month: 'Ene', completed: 12, pending: 6 },
+                { month: 'Feb', completed: 15, pending: 5 },
+                { month: 'Mar', completed: 18, pending: 4 },
+                { month: 'Abr', completed: 16, pending: 5 },
+                { month: 'May', completed: 20, pending: 3 },
+                { month: 'Jun', completed: 22, pending: 2 },
+                { month: 'Jul', completed: 21, pending: 4 },
+                { month: 'Ago', completed: 23, pending: 1 },
+                { month: 'Sep', completed: 24, pending: 2 },
+                { month: 'Oct', completed: 18, pending: 6 },
+                { month: 'Nov', completed: 20, pending: 7 },
+                { month: 'Dic', completed: 18, pending: 6 }
+            ],
+            maintenance: [
+                { month: 'Ene', scheduled: 8, completed: 7, overdue: 1 },
+                { month: 'Feb', scheduled: 10, completed: 9, overdue: 1 },
+                { month: 'Mar', scheduled: 12, completed: 11, overdue: 1 },
+                { month: 'Abr', scheduled: 9, completed: 8, overdue: 1 },
+                { month: 'May', scheduled: 11, completed: 10, overdue: 1 },
+                { month: 'Jun', scheduled: 13, completed: 12, overdue: 1 },
+                { month: 'Jul', scheduled: 14, completed: 13, overdue: 1 },
+                { month: 'Ago', scheduled: 12, completed: 11, overdue: 1 },
+                { month: 'Sep', scheduled: 15, completed: 14, overdue: 1 },
+                { month: 'Oct', scheduled: 16, completed: 12, overdue: 4 },
+                { month: 'Nov', scheduled: 18, completed: 15, overdue: 3 },
+                { month: 'Dic', scheduled: 20, completed: 12, overdue: 8 }
+            ]
+        };
+
+        const devicePerformance = [
+            { name: 'Desfibrilador Cardioversor', code: 'DF-001', amfeScore: 2.3, risk: 'Bajo', lastAMFE: '2024-10-15' },
+            { name: 'Ventilador Mecánico', code: 'VM-002', amfeScore: 4.1, risk: 'Alto', lastAMFE: '2024-10-20' },
+            { name: 'Monitor de Signos Vitales', code: 'MS-003', amfeScore: 2.8, risk: 'Medio', lastAMFE: '2024-10-10' },
+            { name: 'Bomba de Infusión', code: 'BI-004', amfeScore: 3.9, risk: 'Alto', lastAMFE: '2024-10-25' },
+            { name: 'Incubadora Neonatal', code: 'IN-005', amfeScore: 4.2, risk: 'Alto', lastAMFE: '2024-10-18' },
+            { name: 'Electrocardiógrafo', code: 'EC-006', amfeScore: 1.8, risk: 'Bajo', lastAMFE: '2024-08-15' }
+        ];
+
+        const maintenanceSchedule = [
+            { device: 'Ventilador Mecánico VM-002', date: '2024-12-20', type: 'Preventivo', priority: 'Alta' },
+            { device: 'Bomba de Infusión BI-004', date: '2024-12-25', type: 'Correctivo', priority: 'Alta' },
+            { device: 'Incubadora Neonatal IN-005', date: '2024-12-18', type: 'Preventivo', priority: 'Alta' },
+            { device: 'Monitor de Signos Vitales MS-003', date: '2024-12-10', type: 'Preventivo', priority: 'Media' },
+            { device: 'Desfibrilador Cardioversor DF-001', date: '2024-12-15', type: 'Preventivo', priority: 'Media' }
+        ];
+
+        function initializeStatisticsCharts() {
+            renderEvolutionChart();
+            renderRiskDistributionChart();
+            renderRiskAnalysisChart();
+            renderDevicePerformance();
+            renderMaintenanceSchedule();
+        }
+
+        function renderEvolutionChart() {
+            const data = monthlyDataStats[currentChartType];
+            const months = data.map(d => d.month);
+            
+            let traces = [];
+            
+            if (currentChartType === 'devices') {
+                traces = [
+                    {
+                        x: months,
+                        y: data.map(d => d.count),
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Total Dispositivos',
+                        line: { color: '#3b82f6', width: 3 },
+                        marker: { size: 8 }
+                    },
+                    {
+                        x: months,
+                        y: data.map(d => d.new),
+                        type: 'bar',
+                        name: 'Nuevos',
+                        marker: { color: '#10b981' }
+                    },
+                    {
+                        x: months,
+                        y: data.map(d => -d.retired),
+                        type: 'bar',
+                        name: 'Retirados',
+                        marker: { color: '#ef4444' }
+                    }
+                ];
+            } else if (currentChartType === 'amfe') {
+                traces = [
+                    {
+                        x: months,
+                        y: data.map(d => d.completed),
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'AMFE Completadas',
+                        line: { color: '#10b981', width: 3 },
+                        marker: { size: 8 }
+                    },
+                    {
+                        x: months,
+                        y: data.map(d => d.pending),
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'AMFE Pendientes',
+                        line: { color: '#f59e0b', width: 3 },
+                        marker: { size: 8 }
+                    }
+                ];
+            } else if (currentChartType === 'maintenance') {
+                traces = [
+                    {
+                        x: months,
+                        y: data.map(d => d.scheduled),
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Programados',
+                        line: { color: '#6b7280', width: 3 },
+                        marker: { size: 8 }
+                    },
+                    {
+                        x: months,
+                        y: data.map(d => d.completed),
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Completados',
+                        line: { color: '#10b981', width: 3 },
+                        marker: { size: 8 }
+                    },
+                    {
+                        x: months,
+                        y: data.map(d => d.overdue),
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Vencidos',
+                        line: { color: '#ef4444', width: 3 },
+                        marker: { size: 8 }
+                    }
+                ];
+            }
+
+            const layout = {
+                xaxis: { title: 'Mes' },
+                yaxis: { title: currentChartType === 'devices' ? 'Cantidad' : currentChartType === 'amfe' ? 'Evaluaciones' : 'Mantenimientos' },
+                margin: { t: 20, b: 60, l: 60, r: 20 },
+                font: { size: 12 },
+                legend: { x: 0, y: 1 }
+            };
+
+            Plotly.newPlot('evolutionChart', traces, layout, {responsive: true, displayModeBar: false});
+        }
+
+        function renderRiskDistributionChart() {
+            const devices = JSON.parse(localStorage.getItem('medicalDevices') || '[]');
+            const riskCounts = devices.reduce((acc, device) => {
+                acc[device.risk] = (acc[device.risk] || 0) + 1;
+                return acc;
+            }, {});
+
+            const data = [{
+                values: Object.values(riskCounts),
+                labels: Object.keys(riskCounts),
+                type: 'pie',
+                hole: 0.4,
+                marker: {
+                    colors: ['#10b981', '#f59e0b', '#ef4444']
+                },
+                textinfo: 'label+percent',
+                textposition: 'outside'
+            }];
+
+            const layout = {
+                showlegend: false,
+                margin: { t: 0, b: 0, l: 0, r: 0 },
+                font: { size: 12 }
+            };
+
+            Plotly.newPlot('riskDistributionChart', data, layout, {responsive: true, displayModeBar: false});
+        }
+
+        function renderRiskAnalysisChart() {
+            const riskData = [
+                { severity: 'Baja', occurrence: 15, detection: 18 },
+                { severity: 'Media', occurrence: 6, detection: 4 },
+                { severity: 'Alta', occurrence: 3, detection: 2 }
+            ];
+
+            const data = [
+                {
+                    x: riskData.map(d => d.severity),
+                    y: riskData.map(d => d.occurrence),
+                    name: 'Ocurrencia',
+                    type: 'bar',
+                    marker: { color: '#3b82f6' }
+                },
+                {
+                    x: riskData.map(d => d.severity),
+                    y: riskData.map(d => d.detection),
+                    name: 'Detección',
+                    type: 'bar',
+                    marker: { color: '#10b981' }
+                }
+            ];
+
+            const layout = {
+                xaxis: { title: 'Nivel de Riesgo' },
+                yaxis: { title: 'Cantidad' },
+                margin: { t: 20, b: 60, l: 60, r: 20 },
+                font: { size: 12 },
+                barmode: 'group'
+            };
+
+            Plotly.newPlot('riskAnalysisChart', data, layout, {responsive: true, displayModeBar: false});
+        }
+
+        function renderDevicePerformance() {
+            const container = document.getElementById('devicePerformance');
+            container.innerHTML = devicePerformance.map(device => {
+                const riskColor = device.risk === 'Bajo' ? 'text-green-600' : 
+                                 device.risk === 'Medio' ? 'text-yellow-600' : 'text-red-600';
+                const scoreColor = device.amfeScore <= 2 ? 'text-green-600' : 
+                                  device.amfeScore <= 3 ? 'text-yellow-600' : 'text-red-600';
+                
+                return `
+                    <div class="device-item p-3 border border-gray-200 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium text-gray-800">${device.name}</p>
+                                <p class="text-sm text-gray-600">${device.code}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-bold ${scoreColor}">${device.amfeScore}</p>
+                                <p class="text-xs ${riskColor}">${device.risk}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderMaintenanceSchedule() {
+            const container = document.getElementById('maintenanceSchedule');
+            container.innerHTML = maintenanceSchedule.map(item => {
+                const priorityColor = item.priority === 'Alta' ? 'text-red-600' : 
+                                     item.priority === 'Media' ? 'text-yellow-600' : 'text-green-600';
+                
+                return `
+                    <div class="p-3 border border-gray-200 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium text-gray-800">${item.device}</p>
+                                <p class="text-sm text-gray-600">${item.type} - ${item.date}</p>
+                            </div>
+                            <span class="text-xs font-semibold ${priorityColor}">${item.priority}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleChart(type) {
+            currentChartType = type;
+            
+            // Update button states
+            document.querySelectorAll('[id^="btn"]').forEach(btn => {
+                btn.className = 'px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded-lg';
+            });
+            document.getElementById(`btn${type.charAt(0).toUpperCase() + type.slice(1)}`).className = 'px-3 py-1 bg-blue-600 text-white text-sm rounded-lg';
+            
+            renderEvolutionChart();
+        }
+
+        function updateStatistics() {
+            const period = document.getElementById('periodSelect').value;
+            // Update statistics based on selected period
+            initializeStatisticsCharts();
+        }
+
+        function exportStatistics() {
+            alert('Exportando estadísticas a Excel...');
+        }
+
+        // Logout functionality
+        function logout() {
+            localStorage.removeItem('currentUser');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            if (userData.username) {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                loadUserData();
+                initializeDashboardCharts();
+            }
+
+            // Load recent AMFE evaluations on page load
+            loadRecentAMFE();
+            loadRecentReports();
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('es-CO');
+            
+            // Load devices data
+            loadDevices();
+        });
+    </script>
+</body>
+</html>

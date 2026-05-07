@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel Principal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    /* ======== ESTRUCTURA GENERAL ======== */
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      background-color: #f9fafb;
+    }
+
+    /* ======== MENÚ LATERAL ======== */
+    .sidebar {
+      background-color: #0f172a;
+      color: white;
+      width: 250px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 0;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar h2 {
+      font-size: 1.3rem;
+      margin-bottom: 40px;
+      color: #e0e7ff;
+    }
+
+    .sidebar a {
+      color: #e2e8f0;
+      text-decoration: none;
+      display: block;
+      width: 80%;
+      text-align: left;
+      padding: 12px 15px;
+      margin: 8px 0;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar a:hover, .sidebar a.active {
+      background: #2563eb;
+      color: white;
+      transform: translateX(5px);
+    }
+
+    /* ======== CONTENIDO PRINCIPAL ======== */
+    .content {
+      flex: 1;
+      padding: 40px 60px;
+      background-color: #f8fafc;
+      overflow-y: auto;
+    }
+
+    .content h1 {
+      color: #1e3a8a;
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .content h2 {
+      color: #1e3a8a;
+      font-size: 1.5rem;
+      margin-top: 40px;
+      margin-bottom: 20px;
+    }
+
+    .content h3 {
+      color: #2563eb;
+      font-size: 1.2rem;
+      margin-top: 25px;
+      margin-bottom: 15px;
+    }
+
+    .content p {
+      color: #475569;
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    /* ======== TARJETAS DE RESUMEN ======== */
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      flex: 1;
+      min-width: 250px;
+      padding: 25px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+    }
+
+    .card.clickable {
+      cursor: pointer;
+    }
+
+    .card.clickable::after {
+      content: "👁️ Ver detalle";
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 0.85rem;
+      color: #2563eb;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      font-weight: 600;
+    }
+
+    .card.clickable:hover::after {
+      opacity: 1;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .card h3 {
+      color: #2563eb;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #0f172a;
+      margin: 0;
+    }
+
+    /* ======== SECCIÓN INFORMATIVA ======== */
+    .info-section {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .info-section h2 {
+      margin-top: 0;
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 10px;
+    }
+
+    .definition-box {
+      background: #eff6ff;
+      border-left: 4px solid #2563eb;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .definition-box p {
+      margin: 0;
+      color: #1e3a8a;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* ======== TABLAS DE CALIFICACIÓN ======== */
+    .tables-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin-top: 25px;
+    }
+
+    .rating-table-wrapper {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .rating-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    .rating-table thead {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: white;
+    }
+
+    .rating-table th {
+      padding: 12px 10px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .rating-table tbody tr {
+      border-bottom: 1px solid #e2e8f0;
+      transition: background-color 0.2s ease;
+    }
+
+    .rating-table tbody tr:hover {
+      background-color: #f8fafc;
+    }
+
+    .rating-table td {
+      padding: 12px 10px;
+      font-size: 14px;
+      color: #334155;
+    }
+
+    .rating-table td:first-child {
+      font-weight: 600;
+      color: #1e3a8a;
+      text-align: center;
+      width: 60px;
+    }
+
+    /* Colores para calificaciones */
+    .rating-1 { background-color: #dcfce7 !important; }
+    .rating-2 { background-color: #fef3c7 !important; }
+    .rating-3 { background-color: #fed7aa !important; }
+    .rating-4 { background-color: #fecaca !important; }
+    .rating-5 { background-color: #fca5a5 !important; }
+
+    .npr-info {
+      background: #fef3c7;
+      border-left: 4px solid #eab308;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .npr-info strong {
+      color: #854d0e;
+      display: block;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .npr-info p {
+      margin: 5px 0;
+      color: #713f12;
+      font-size: 14px;
+    }
+
+    .npr-levels {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .npr-level {
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .npr-bajo {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+
+    .npr-medio {
+      background-color: #fef3c7;
+      color: #854d0e;
+    }
+
+    .npr-alto {
+      background-color: #fecaca;
+      color: #991b1b;
+    }
+
+    /* ======== MODAL ======== */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal.show {
+      display: flex !important;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 35px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      width: 90%;
+      max-width: 700px;
+      position: relative;
+      animation: slideIn 0.3s ease;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .modal-header h2 {
+      color: #1e3a8a;
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .close {
+      font-size: 28px;
+      font-weight: bold;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 35px;
+      height: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      line-height: 1;
+    }
+
+    .close:hover {
+      color: #1e3a8a;
+      background-color: #f1f5f9;
+      transform: rotate(90deg);
+    }
+
+    #chartContainer {
+      width: 100%;
+      height: 220px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+    }
+    
+    #deviceChart {
+      max-width: 220px;
+      max-height: 220px;
+    }
+
+    .chart-stats {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 2px solid #e2e8f0;
+      gap: 20px;
+    }
+
+    .stat-item {
+      text-align: center;
+      flex: 1;
+      padding: 15px;
+      background-color: #f8fafc;
+      border-radius: 10px;
+    }
+
+    .stat-item .stat-label {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .stat-item .stat-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #0f172a;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+      from { 
+        transform: translateY(-30px);
+        opacity: 0;
+      }
+      to { 
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======== MENÚ LATERAL ======== -->
+  <div class="sidebar">
+    <h2>Panel de Control</h2>
+    <a href="{{ url_for('dashboard') }}" class="active">🏠 Inicio</a>
+    <a href="{{ url_for('inventario') }}"> Inventario</a>
+    <a href="{{ url_for('matriz_amfe') }}"> Matriz AMFE</a>
+    <a href="{{ url_for('reportes') }}"> Reportes</a>
+    <a href="{{ url_for('logout') }}"> Cerrar Sesión</a>
+  </div>
+
+  <!-- ======== CONTENIDO PRINCIPAL ======== -->
+  <div class="content">
+    <h1>Bienvenido, {{ session['usuario'] }}</h1>
+    <p>Panel de gestión del sistema AMFE. Desde aquí puedes acceder al inventario, reportes y configuraciones.</p>
+
+    <!-- TARJETAS DE ESTADÍSTICAS -->
+    <div class="cards">
+      <div class="card clickable" id="totalDispositivosCard">
+        <h3>Total de Dispositivos</h3>
+        <p id="totalDispValue">{{ total_dispositivos }}</p>
+      </div>
+      <div class="card">
+        <h3>Equipos Clase IIB</h3>
+        <p id="totalIIBValue">{{ total_IIB }}</p>
+      </div>
+      <div class="card">
+        <h3>Equipos Clase III</h3>
+        <p id="totalIIIValue">{{ total_III }}</p>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: DEFINICIÓN DE MATRIZ AMFE -->
+    <div class="info-section">
+      <h2>📋 ¿Qué es la Matriz AMFE?</h2>
+      <div class="definition-box">
+        <p>
+          El <strong>AMFE (Análisis Modal de Fallos y Efectos)</strong> es una metodología sistemática y estructurada 
+          para identificar y prevenir posibles fallos en productos, procesos o servicios. En el contexto de dispositivos 
+          médicos, permite evaluar los riesgos asociados a cada equipo y establecer acciones preventivas para garantizar 
+          la seguridad de los pacientes y el personal sanitario.
+        </p>
+      </div>
+      
+      <p>
+        El AMFE evalúa tres factores principales para calcular el <strong>Número de Prioridad de Riesgo (NPR)</strong>:
+      </p>
+      <ul style="line-height: 1.8; color: #475569;">
+        <li><strong>Severidad (SEV):</strong> Gravedad del efecto de la falla</li>
+        <li><strong>Ocurrencia (OCUR):</strong> Probabilidad de que ocurra la falla</li>
+        <li><strong>Detectabilidad (DET):</strong> Capacidad para detectar la falla antes de que cause daño</li>
+      </ul>
+
+      <div class="npr-info">
+        <strong>📊 Cálculo del NPR</strong>
+        <p><strong>NPR = Severidad × Ocurrencia × Detectabilidad</strong></p>
+        <p>El NPR puede variar desde 1 (riesgo mínimo) hasta 125 (riesgo máximo).</p>
+        
+        <div class="npr-levels">
+          <div class="npr-level npr-bajo">NPR ≤ 10<br>Riesgo Bajo</div>
+          <div class="npr-level npr-medio">11 ≤ NPR ≤ 20<br>Riesgo Medio</div>
+          <div class="npr-level npr-alto">NPR ≥ 21<br>Riesgo Crítico</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: TABLAS DE CALIFICACIÓN -->
+    <div class="info-section">
+      <h2>📊 Tablas de Calificación AMFE</h2>
+      <p>Utilice las siguientes escalas de 1 a 5 para evaluar cada factor:</p>
+
+      <div class="tables-container">
+        <!-- TABLA DE SEVERIDAD -->
+        <div class="rating-table-wrapper">
+          <h3>⚠️ Severidad (SEV)</h3>
+          <table class="rating-table">
+            <thead>
+              <tr>
+                <th>Valor</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="rating-1">
+                <td>1</td>
+                <td>Insignificante: Sin efecto en el funcionamiento</td>
+              </tr>
+              <tr class="rating-2">
+                <td>2</td>
+                <td>Menor: Efecto leve, molestias mínimas</td>
+              </tr>
+              <tr class="rating-3">
+                <td>3</td>
+                <td>Moderada: Degradación del desempeño</td>
+              </tr>
+              <tr class="rating-4">
+                <td>4</td>
+                <td>Alta: Pérdida de función principal</td>
+              </tr>
+              <tr class="rating-5">
+                <td>5</td>
+                <td>Crítica: Riesgo de lesión o muerte</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- TABLA DE OCURRENCIA -->
+        <div class="rating-table-wrapper">
+          <h3>🔄 Ocurrencia (OCUR)</h3>
+          <table class="rating-table">
+            <thead>
+              <tr>
+                <th>Valor</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="rating-1">
+                <td>1</td>
+                <td>Remota: Prácticamente imposible</td>
+              </tr>
+              <tr class="rating-2">
+                <td>2</td>
+                <td>Baja: Pocas veces en la vida útil</td>
+              </tr>
+              <tr class="rating-3">
+                <td>3</td>
+                <td>Moderada: Ocasionalmente</td>
+              </tr>
+              <tr class="rating-4">
+                <td>4</td>
+                <td>Alta: Frecuentemente</td>
+              </tr>
+              <tr class="rating-5">
+                <td>5</td>
+                <td>Muy alta: Casi inevitable</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- TABLA DE DETECTABILIDAD -->
+        <div class="rating-table-wrapper">
+          <h3>🔍 Detectabilidad (DET)</h3>
+          <table class="rating-table">
+            <thead>
+              <tr>
+                <th>Valor</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="rating-1">
+                <td>1</td>
+                <td>Muy alta: Detección casi segura</td>
+              </tr>
+              <tr class="rating-2">
+                <td>2</td>
+                <td>Alta: Probable detección</td>
+              </tr>
+              <tr class="rating-3">
+                <td>3</td>
+                <td>Moderada: Detección posible</td>
+              </tr>
+              <tr class="rating-4">
+                <td>4</td>
+                <td>Baja: Detección improbable</td>
+              </tr>
+              <tr class="rating-5">
+                <td>5</td>
+                <td>Muy baja: No se puede detectar</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== MODAL CON GRÁFICO ======== -->
+  <div id="chartModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📊 Distribución de Dispositivos por Clase</h2>
+        <span class="close">&times;</span>
+      </div>
+      <div id="chartContainer">
+        <canvas id="deviceChart"></canvas>
+      </div>
+      <div class="chart-stats">
+        <div class="stat-item">
+          <div class="stat-label">Clase IIB</div>
+          <div class="stat-value" id="modalIIB">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Clase III</div>
+          <div class="stat-value" id="modalIII">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Total</div>
+          <div class="stat-value" id="modalTotal">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  
+  <script>
+    // Función para obtener datos de forma segura
+    function getValueFromElement(id) {
+      const element = document.getElementById(id);
+      if (!element) {
+        console.warn(`Elemento ${id} no encontrado`);
+        return 0;
+      }
+      const value = parseInt(element.textContent.trim());
+      return isNaN(value) ? 0 : value;
+    }
+
+    // Obtener datos desde el HTML
+    const totalIIB = getValueFromElement('totalIIBValue');
+    const totalIII = getValueFromElement('totalIIIValue');
+    const totalDispositivos = getValueFromElement('totalDispValue');
+
+    console.log('Datos cargados:', { totalIIB, totalIII, totalDispositivos });
+
+    // Referencias del DOM
+    const modal = document.getElementById('chartModal');
+    const card = document.getElementById('totalDispositivosCard');
+    const closeBtn = document.querySelector('.close');
+
+    // Variable para el gráfico
+    let chartInstance = null;
+
+    // Verificar que los elementos existen
+    if (!modal || !card || !closeBtn) {
+      console.error('Error: No se encontraron los elementos del modal');
+    }
+
+    // Abrir modal al hacer clic en la tarjeta
+    if (card) {
+      card.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Click en tarjeta - Abriendo modal');
+        console.log('Verificando Chart.js:', typeof Chart);
+        
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+        
+        // Actualizar valores en el modal
+        document.getElementById('modalIIB').textContent = totalIIB;
+        document.getElementById('modalIII').textContent = totalIII;
+        document.getElementById('modalTotal').textContent = totalDispositivos;
+        
+        // Verificar que Chart.js esté cargado
+        if (typeof Chart === 'undefined') {
+          console.error('Chart.js no está cargado!');
+          alert('Error: La librería de gráficos no se cargó correctamente. Por favor recarga la página.');
+          return;
+        }
+        
+        // Pequeño delay para asegurar que el modal está visible
+        setTimeout(() => {
+          createChart();
+        }, 150);
+      });
+    }
+
+    // Cerrar modal al hacer clic en X
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Cerrando modal');
+        closeModal();
+      });
+    }
+
+    // Cerrar modal al hacer clic fuera del contenido
+    window.addEventListener('click', function(event) {
+      if (event.target === modal) {
+        console.log('Click fuera del modal - Cerrando');
+        closeModal();
+      }
+    });
+
+    // Cerrar modal con tecla ESC
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape' && modal.classList.contains('show')) {
+        console.log('ESC presionado - Cerrando');
+        closeModal();
+      }
+    });
+
+    // Función para cerrar el modal
+    function closeModal() {
+      modal.classList.remove('show');
+      modal.style.display = 'none';
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+    }
+
+    // Función para crear el gráfico circular
+    function createChart() {
+      console.log('=== Iniciando creación del gráfico ===');
+      console.log('Valores:', { totalIIB, totalIII, totalDispositivos });
+      
+      if (chartInstance) {
+        console.log('Destruyendo gráfico anterior');
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+
+      const canvas = document.getElementById('deviceChart');
+      if (!canvas) {
+        console.error('❌ Canvas no encontrado');
+        return;
+      }
+      console.log('✅ Canvas encontrado');
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        console.error('❌ No se pudo obtener el contexto 2D');
+        return;
+      }
+      console.log('✅ Contexto 2D obtenido');
+      
+      const total = totalIIB + totalIII;
+      const percentIIB = total > 0 ? ((totalIIB / total) * 100).toFixed(1) : 0;
+      const percentIII = total > 0 ? ((totalIII / total) * 100).toFixed(1) : 0;
+
+      console.log('Porcentajes calculados:', { percentIIB, percentIII, total });
+
+      if (total === 0) {
+        console.warn('⚠️ No hay datos para mostrar (total = 0)');
+        ctx.font = '16px Segoe UI';
+        ctx.fillStyle = '#64748b';
+        ctx.textAlign = 'center';
+        ctx.fillText('No hay datos disponibles', canvas.width / 2, canvas.height / 2);
+        return;
+      }
+
+      try {
+        console.log('Creando instancia de Chart...');
+        chartInstance = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Clase IIB', 'Clase III'],
+            datasets: [{
+              data: [totalIIB, totalIII],
+              backgroundColor: ['#2563eb', '#0f172a'],
+              borderColor: '#ffffff',
+              borderWidth: 3,
+              hoverOffset: 10,
+              cutout: '60%'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.3,
+            layout: {
+              padding: {
+                top: 5,
+                bottom: 5,
+                left: 40,
+                right: 40
+              }
+            },
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  padding: 12,
+                  font: {
+                    size: 12,
+                    family: "'Segoe UI', Arial, sans-serif"
+                  },
+                  usePointStyle: true,
+                  pointStyle: 'circle',
+                  boxWidth: 12,
+                  generateLabels: function(chart) {
+                    const data = chart.data;
+                    return data.labels.map((label, i) => {
+                      const value = data.datasets[0].data[i];
+                      const percent = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                      return {
+                        text: `${label}: ${value} (${percent}%)`,
+                        fillStyle: data.datasets[0].backgroundColor[i],
+                        hidden: false,
+                        index: i
+                      };
+                    });
+                  }
+                }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: { size: 14 },
+                bodyFont: { size: 13 },
+                callbacks: {
+                  label: function(context) {
+                    const label = context.label || '';
+                    const value = context.parsed || 0;
+                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                    return `${label}: ${value} dispositivos (${percentage}%)`;
+                  }
+                }
+              }
+            }
+          }
+        });
+        
+        console.log('✅ Gráfico creado exitosamente!', chartInstance);
+      } catch (error) {
+        console.error('❌ Error al crear gráfico:', error);
+        alert('Error al crear el gráfico: ' + error.message);
+      }
+    }
+  </script>
+
+</body>
+</html>

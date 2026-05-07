@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Usuario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .error-message {
+            color: #dc2626;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+        input.invalid {
+            border: 2px solid #dc2626 !important;
+        }
+        input.valid {
+            border: 2px solid #16a34a !important;
+        }
+        .password-requirements {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 8px;
+            padding: 10px;
+            background-color: #f8fafc;
+            border-radius: 6px;
+        }
+        .password-requirements ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+        .password-requirements li {
+            margin: 5px 0;
+        }
+        .password-requirements li.valid {
+            color: #16a34a;
+            font-weight: 600;
+        }
+        .password-requirements li.invalid {
+            color: #dc2626;
+        }
+    </style>
+</head>
+
+<body class="login-page">
+
+    <div class="login-box">
+        <img src="{{ url_for('static', filename='gris.png') }}" class="logo" alt="Logo">
+        <h2>Registro de Usuario</h2>
+
+        <form method="POST" id="registroForm" novalidate>
+            <label>Nombre de usuario:</label><br>
+            <input type="text" name="username" id="username" required placeholder="usuario@clinicadeoccidente.com"><br>
+            <div class="error-message" id="emailError">Debe usar un correo válido de @clinicadeoccidente.com</div>
+
+            <label>Contraseña:</label><br>
+            <input type="password" name="password" id="password" required><br>
+            
+            <div class="password-requirements">
+                <strong>Requisitos de contraseña:</strong>
+                <ul>
+                    <li id="req-length" class="invalid">✗ Mínimo 6 caracteres</li>
+                    <li id="req-uppercase" class="invalid">✗ Al menos una letra mayúscula</li>
+                    <li id="req-number" class="invalid">✗ Al menos un número</li>
+                </ul>
+            </div>
+
+            <label>Confirmar Contraseña:</label><br>
+            <input type="password" name="confirm_password" id="confirm_password" required><br>
+            <div class="error-message" id="confirmError">Las contraseñas no coinciden</div>
+
+            <button type="submit">Registrar</button>
+        </form>
+
+        <p style="margin-top:15px;">
+            ¿Ya tienes cuenta? 
+            <a href="{{ url_for('login') }}" style="color:#2563eb; text-decoration:none; font-weight:bold;">
+                Inicia sesión aquí
+            </a>
+        </p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul style="list-style:none; padding:0;">
+              {% for category, message in messages %}
+                <li style="color:red;"><strong>{{ category }}:</strong> {{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+    </div>
+
+    <script>
+        const form = document.getElementById('registroForm');
+        const username = document.getElementById('username');
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm_password');
+
+        // Validación de correo de Clínica de Occidente
+        function validateEmail() {
+            const email = username.value.trim();
+            const emailError = document.getElementById('emailError');
+            
+            // Debe terminar en @clinicadeoccidente.com
+            const isValid = email.endsWith('@clinicadeoccidente.com') && email.length > '@clinicadeoccidente.com'.length;
+            
+            if (!isValid && email.length > 0) {
+                username.classList.add('invalid');
+                username.classList.remove('valid');
+                emailError.classList.add('show');
+                return false;
+            } else if (isValid) {
+                username.classList.remove('invalid');
+                username.classList.add('valid');
+                emailError.classList.remove('show');
+                return true;
+            } else {
+                username.classList.remove('invalid', 'valid');
+                emailError.classList.remove('show');
+                return false;
+            }
+        }
+
+        // Validación de contraseña
+        function validatePassword() {
+            const pass = password.value;
+            
+            const hasLength = pass.length >= 6;
+            const hasUppercase = /[A-Z]/.test(pass);
+            const hasNumber = /[0-9]/.test(pass);
+            
+            document.getElementById('req-length').className = hasLength ? 'valid' : 'invalid';
+            document.getElementById('req-length').textContent = hasLength ? '✓ Mínimo 6 caracteres' : '✗ Mínimo 6 caracteres';
+            
+            document.getElementById('req-uppercase').className = hasUppercase ? 'valid' : 'invalid';
+            document.getElementById('req-uppercase').textContent = hasUppercase ? '✓ Al menos una letra mayúscula' : '✗ Al menos una letra mayúscula';
+            
+            document.getElementById('req-number').className = hasNumber ? 'valid' : 'invalid';
+            document.getElementById('req-number').textContent = hasNumber ? '✓ Al menos un número' : '✗ Al menos un número';
+            
+            const isValid = hasLength && hasUppercase && hasNumber;
+            
+            if (!isValid && pass.length > 0) {
+                password.classList.add('invalid');
+                password.classList.remove('valid');
+                return false;
+            } else if (isValid) {
+                password.classList.remove('invalid');
+                password.classList.add('valid');
+                return true;
+            } else {
+                password.classList.remove('invalid', 'valid');
+                return false;
+            }
+        }
+
+        // Validación de confirmación
+        function validateConfirmPassword() {
+            const confirmError = document.getElementById('confirmError');
+            const isValid = password.value === confirmPassword.value && confirmPassword.value.length > 0;
+            
+            if (!isValid && confirmPassword.value.length > 0) {
+                confirmPassword.classList.add('invalid');
+                confirmPassword.classList.remove('valid');
+                confirmError.classList.add('show');
+                return false;
+            } else if (isValid) {
+                confirmPassword.classList.remove('invalid');
+                confirmPassword.classList.add('valid');
+                confirmError.classList.remove('show');
+                return true;
+            } else {
+                confirmPassword.classList.remove('invalid', 'valid');
+                confirmError.classList.remove('show');
+                return false;
+            }
+        }
+
+        // Eventos en tiempo real
+        username.addEventListener('input', validateEmail);
+        username.addEventListener('blur', validateEmail);
+        
+        password.addEventListener('input', validatePassword);
+        password.addEventListener('blur', validatePassword);
+        
+        confirmPassword.addEventListener('input', validateConfirmPassword);
+        confirmPassword.addEventListener('blur', validateConfirmPassword);
+
+        // Validación al enviar
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const emailValid = validateEmail();
+            const passwordValid = validatePassword();
+            const confirmValid = validateConfirmPassword();
+            
+            if (emailValid && passwordValid && confirmValid) {
+                form.submit();
+            } else {
+                alert('Por favor, corrige los errores en el formulario antes de continuar.');
+            }
+        });
+    </script>
+
+</body>
+</html>

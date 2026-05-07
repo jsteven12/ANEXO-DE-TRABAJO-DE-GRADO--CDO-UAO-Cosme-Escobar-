@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reportes AMFE</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      background-color: #f9fafb;
+    }
+
+    .sidebar {
+      background-color: #0f172a;
+      color: white;
+      width: 250px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 0;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar h2 {
+      font-size: 1.3rem;
+      margin-bottom: 40px;
+      color: #e0e7ff;
+    }
+
+    .sidebar a {
+      color: #e2e8f0;
+      text-decoration: none;
+      display: block;
+      width: 80%;
+      text-align: left;
+      padding: 12px 15px;
+      margin: 8px 0;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar a:hover, .sidebar a.active {
+      background: #2563eb;
+      color: white;
+      transform: translateX(5px);
+    }
+
+    .content {
+      flex: 1;
+      padding: 40px 60px;
+      background-color: #f8fafc;
+      overflow-y: auto;
+    }
+
+    .content h1 {
+      color: #1e3a8a;
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .content p {
+      color: #475569;
+      font-size: 18px;
+      margin-bottom: 40px;
+    }
+
+    .dispositivos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 25px;
+      margin-top: 30px;
+    }
+
+    .dispositivo-card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .dispositivo-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .dispositivo-card h3 {
+      color: #1e3a8a;
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+    }
+
+    .dispositivo-info {
+      color: #64748b;
+      font-size: 0.9rem;
+      margin: 5px 0;
+    }
+
+    .dispositivo-info strong {
+      color: #0f172a;
+    }
+
+    .btn-generar {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #2563eb, #1e3a8a);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-generar:hover {
+      background: linear-gradient(135deg, #1e40af, #1e3a8a);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .sin-dispositivos {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .sin-dispositivos h2 {
+      color: #64748b;
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+    }
+
+    .sin-dispositivos p {
+      color: #94a3b8;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2>Panel de Control</h2>
+    <a href="{{ url_for('dashboard') }}">🏠 Inicio</a>
+    <a href="{{ url_for('inventario') }}"> Inventario</a>
+    <a href="{{ url_for('matriz_amfe') }}"> Matriz AMFE</a>
+    <a href="{{ url_for('reportes') }}" class="active"> Reportes</a>
+    <a href="{{ url_for('logout') }}"> Cerrar Sesión</a>
+  </div>
+
+  <div class="content">
+    <h1>Reportes AMFE</h1>
+    <p>Selecciona un dispositivo para generar su reporte en PDF</p>
+
+    {% if dispositivos %}
+      <div class="dispositivos-grid">
+        {% for d in dispositivos %}
+        <div class="dispositivo-card">
+          <h3>{{ d[1] }}</h3>
+          <div class="dispositivo-info"><strong>Marca:</strong> {{ d[2] or 'N/A' }}</div>
+          <div class="dispositivo-info"><strong>Modelo:</strong> {{ d[3] or 'N/A' }}</div>
+          <div class="dispositivo-info"><strong>Clasificación:</strong> {{ d[4] or 'N/A' }}</div>
+          <a href="{{ url_for('generar_reporte_pdf', dispositivo_id=d[0]) }}" class="btn-generar">
+            📄 Generar PDF
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="sin-dispositivos">
+        <h2>📋 No hay dispositivos con registros AMFE</h2>
+        <p>Primero debes agregar dispositivos en el inventario y crear registros AMFE para ellos.</p>
+      </div>
+    {% endif %}
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+body {
+    font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #00336D, #1263af);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+}
+ .auth-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+ .login-container{
+
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+      width: 400px;
+      text-align: center;
+
+ }
+ 
+ .txt1{
+
+    font-size: 13px;
+    color: gray;
+ }
+  .input-field {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      color: black;
+    }
+
+  .btn {
+      width: 100%;
+      padding: 10px;
+      background: #4facfe;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+      transition: background 0.3s;
+    }
+
+      .btn-primary {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.3);
+        }
+
+  .mensaje {
+      margin-top: 15px;
+      font-size: 14px;
+      color: red;
+    }
+
+
+
+/* Ejemplo adicional */
+h2 {
+    color:black;
+}
+
+h3 {
+    color: white;
+}
